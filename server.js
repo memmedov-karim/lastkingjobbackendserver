@@ -38,7 +38,7 @@ dotenv.config();
 // `).catch(error=>console.log)
 // Middleware
 app.use(cors({
-  origin: ['https://kingjob.vercel.app','http://localhost:3000','https://kigjob.com'],
+  origin: ['https://kingjob.vercel.app','http://localhost:3000','https://kigjob.com','https://king-job.vercel.app'],
   credentials: true
 }));
 
