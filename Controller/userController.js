@@ -214,6 +214,67 @@ const updatePassword = async (req,res,next) => {
   }
 }
 //<<--------------------------------User profile update---------------------------------------->>\\
+const updateUserCareerInfo = async (req, res, next) => {
+  const {
+    jobTitle,
+    phone,
+    currentSalary,
+    expectedSalary,
+    experiencesYear,
+    age,
+    educationLevelNow,
+    languages,
+  } = req.body;
+  const { user_id: userId } = req.user;
+
+  try {
+    if (!isValidId(userId)) {
+      throw { status: 400, message: errorConstants.generalErrors.isnotvalidId };
+    }
+
+    const userOne = await Users.findById(userId);
+    if (!userOne) {
+      throw {
+        status: 404,
+        message: errorConstants.userErrors.userdoesntExsist + "ID",
+      };
+    }
+
+    const userInfo = await UserInfo.findById(userOne.userinfo);
+    if (!userInfo) {
+      throw {
+        status: 404,
+        message: errorConstants.userErrors.userdoesntExsist + "User Info",
+      };
+    }
+
+    // Update user career information
+    const updatedInfo = await UserInfo.findByIdAndUpdate(
+      userOne.userinfo,
+      {
+        jobTitle: jobTitle || userInfo.jobTitle,
+        phone: phone || userInfo.phone,
+        currentSalary: currentSalary || userInfo.currentSalary,
+        expestedSalary: expectedSalary || userInfo.expestedSalary,
+        experiencesYear: experiencesYear || userInfo.experiencesYear,
+        age: age || userInfo.age,
+        educationlevelNow: educationLevelNow || userInfo.educationlevelNow,
+        languages: languages || userInfo.languages,
+      },
+      { new: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "User career information updated successfully",
+      data: updatedInfo,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
 const updateUserCarierInfo = async (req,res,next) => {
   const {birthday,city} = req.body;
   const {id:userId} = req.params;
@@ -233,8 +294,9 @@ const updateUserCarierInfo = async (req,res,next) => {
   }
 }
 const addEducation = async (req,res,next) => {
-  const {userId} = req.params;
+  const {user_id:userId} = req.user;
   const {education} = req.body;
+  console.log(req.body)
   try {
     const userOne = await Users.findById(userId);
     if(!userOne) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
@@ -243,7 +305,7 @@ const addEducation = async (req,res,next) => {
     if(userInfo.educations.some(educ=>educ.name === education.name)) throw {status:400,message:education.name+ errorConstants.userErrors.alreadyExsist};
     userInfo.educations = [...userInfo.educations,education];
     await userInfo.save();
-    return res.status(200).json({succes:true,message:education.name+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.educations});
+    return res.status(200).json({succes:true,message:education.name+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.educations[userInfo.educations.length-1]});
   } catch (error) {
     next(error);
   }
@@ -276,7 +338,8 @@ const updateEducation = async (req,res,next) => {
   }
 }
 const deleteEducation = async (req,res,next) => {
-  const {userId,educationId} = req.params
+  const {educationId} = req.params
+  const {user_id:userId} = req.user;
   try {
     const user = await Users.findById(userId);
     if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
@@ -293,24 +356,66 @@ const deleteEducation = async (req,res,next) => {
   }
 }
 
-const addLinks = async (req,res,next) => {
-  const {userId} = req.params;
-  const {links} = req.body;
+const addLinks = async (req, res, next) => {
+  const { links } = req.body;
+  const { user_id: userId } = req.user;
+
   try {
-    if(links.length ===0) throw {status:400,message:'Please add links'};
+    if (links.length === 0) throw { status: 400, message: 'Please add links' };
+
     const userOne = await Users.findById(userId);
-    if(!userOne) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
-    const userInfo = await UserInfo.findOne({user:userId});
-    if(!userInfo) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"User Info"};
+    if (!userOne) throw { status: 404, message: errorConstants.userErrors.userdoesntExsist + 'ID' };
+
+    const userInfo = await UserInfo.findOne({ user: userId });
+    if (!userInfo) throw { status: 404, message: errorConstants.userErrors.userdoesntExsist + 'User Info' };
+
     const linksFromValidation = takeOnlyIllegalLinkFromData(links);
+
+    // Helper function to remove duplicate links
+    const removeDuplicateLinks = (linkArray) => {
+      const uniqueLinks = [];
+      const seenUrls = new Set();
+
+      for (const link of linkArray) {
+        if (!seenUrls.has(link.url)) {
+          uniqueLinks.push(link);
+          seenUrls.add(link.url);
+        }
+      }
+
+      return uniqueLinks;
+    };
+
+    const uniqueLinks = removeDuplicateLinks(linksFromValidation);
+
     const haveIllegal = links.length !== linksFromValidation.length;
-    userInfo.links = [...userInfo.links,...linksFromValidation];
-    await userInfo.save();
-    return res.status(200).json({success:true,message:`Links added succesfully ${haveIllegal ? 'we detect illegal links,that is why we removed these links':''}`,data:userInfo.links});
+
+    // Check if the links already exist in the database
+    const existingLinks = userInfo.links.map(link => link.url);
+    const newLinks = uniqueLinks.filter(link => !existingLinks.includes(link.url));
+
+    if (newLinks.length > 0) {
+      userInfo.links = [...userInfo.links, ...newLinks];
+      await userInfo.save();
+
+      return res.status(200).json({
+        success: true,
+        message: `Links added successfully${haveIllegal ? ', and illegal links removed' : ''}`,
+        data: userInfo.links
+      });
+    } else {
+      return res.status(200).json({
+        success: true,
+        message: 'No new links added (links already exist in the database)',
+        data: userInfo.links
+      });
+    }
   } catch (error) {
     next(error);
   }
-}
+};
+
+
 const updateLink = async (req,res,next) => {
   const {userId,linkId} = req.params;
   const {url:newUrl} = req.body;
@@ -348,8 +453,8 @@ const deleteLink = async (req,res,next) => {
   }
 }
 const addAchievement = async (req,res,next) => {
-  const {userId} = req.params;
-  const {name,certificateUrl} = req.body;
+  const {user_id:userId} = req.user;
+  const {name,certificateUrl,startDate,endDate} = req.body;
   try {
     await validateRequiredFields(req,res,'name','certificateUrl');
     if(!isLinkValid(certificateUrl)) throw {status:400,message:'URL'+errorConstants.generalErrors.isnotCorrect};
@@ -359,9 +464,9 @@ const addAchievement = async (req,res,next) => {
     const userInfo = await UserInfo.findOne({user:userId});
     if(!userInfo) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"User Info"};
     if(userInfo.achievements.some(ach=>ach.certificateUrl === certificateUrl)) throw {status:400,message:"Achievement"+errorConstants.userErrors.alreadyExsist};
-    userInfo.achievements.push({name,certificateUrl});
+    userInfo.achievements.push({name,certificateUrl,startDate,endDate});
     await userInfo.save()
-    return res.status(200).json({succes:true,message:'Achievement'+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.achievements})
+    return res.status(200).json({succes:true,message:'Achievement'+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.achievements[userInfo.achievements.length-1]})
   } catch (error) {
     next(error);
   }
@@ -395,7 +500,8 @@ const updateAchievement = async (req,res,next) => {
   }
 }
 const deleteAchievement = async (req,res,next) => {
-  const {userId,achievementId} = req.params;
+  const {achievementId} = req.params;
+  const {user_id:userId} = req.user;
   try {
     const userOne = await Users.findById(userId);
     if(!userOne) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
@@ -412,25 +518,18 @@ const deleteAchievement = async (req,res,next) => {
 }
 //--------------------------------------------------------------------
 const addExperience = async (req,res,next) => {
-  const {userId} = req.params;
-  const {companyName,position,relatedLink,startDate,endDate,city,description,present} = req.body;
+  const {user_id:userId} = req.user;
+  const {companyName,position,startDate,endDate,description} = req.body;
   try {
     const user = await Users.findById(userId);
     if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
     const userInfo = await UserInfo.findOne({user:userId});
     if(!userInfo) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"User Info"};
-    await validateRequiredFields(req,res,companyName,position,startDate,endDate);
-    if(!present){
-      if(!endDate) throw {status:400,message:'Please select end date or present'};
-    }
-    if(relatedLink){
-      if(!isLinkValid(relatedLink)) throw {status:400,message:errorConstants.generalErrors.isnotCorrect};
-      if(!isLegalLink(relatedLink)) throw {status:400,message:errorConstants.generalErrors.isnotLegal};
-    }
+    await validateRequiredFields(req,res,'companyName','position','startDate');
     if(userInfo.experiences.some(exp=>exp.companyName === companyName && exp.position === position)) throw {status:400,message:'Experience'+errorConstants.userErrors.alreadyExsist};
     userInfo.experiences.push(req.body);
     await userInfo.save();
-    return res.status(200).json({success:true,message:'Experience'+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.experiences});
+    return res.status(200).json({success:true,message:'Experience'+successConstants.updatingSuccess.addedSuccesfully,data:userInfo.experiences[userInfo.experiences.length-1]});
   } catch (error) {
     next(error);
   }
@@ -472,7 +571,8 @@ const updateExperience = async (req,res,next) => {
     return res.status(200).json({success:true,message:'Experience'+successConstants.updatingSuccess.updatedSuccesfully,data:updatedExperience.experiences[experiencesindex]});
 }
 const deleteExperience = async (req,res,next) => {
-  const {userId,experienceId} = req.params;
+  const {user_id:userId} = req.user;
+  const {experienceId} = req.params;
   try {
     const user = await Users.findById(userId);
     if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
@@ -542,12 +642,12 @@ const userDeleteFile = async (req,res,next) => {
   }
 }
 const userUpdateProfilePhoto = async (req,res,next) => {
-  const {userId} = req.params;
+  const {user_id:userId} = req.user;
   const file = req.file;
   try {
-    if(!file) return res.status(200).json({succes:false,message:'Please select file!'})
+    if(!file) throw {status:400,message:'Please select file!'}
     const user = await Users.findById(userId).populate('userinfo','profilepic');
-    if(!user) return res.status(200).json({succes:false,message:'There is not user with the given Id!'});
+    if(!user) throw {status:404,message:'There is not user with the given Id!'};
     const fileName = (user.userinfo)?.profilepic;
     // if(fileName){
     //   deleteFile(fileName, 'userprofilepic', (err, deleteResult) => {
@@ -562,12 +662,12 @@ const userUpdateProfilePhoto = async (req,res,next) => {
 
     const updatedProfilePic = await UserInfo.findOneAndUpdate({user:userId},{
       $set:{
-        profilepic:file?.location
+        profilepic:file?.location || fileName
       }
     },{new:true})
-    return res.status(200).json({succes:true,message:'Profile photo updated succesfully!'})
+    return res.status(200).json({succes:true,message:'Profile photo updated succesfully!',data:updatedProfilePic})
   } catch (error) {
-    return res.status(500).json({succes:false,message:`Error at updating userprofile picture,error:${error.name}`})
+   next(error)
   }
 }
 const userDeleteProfilePhoto = async (req,res,next) => {
@@ -747,7 +847,8 @@ module.exports = {
   deleteExperience,
   getUserWithId,
   userUpdateProfilePhoto,
-  userDeleteProfilePhoto
+  userDeleteProfilePhoto,
+  updateUserCareerInfo
 };
 
 

@@ -132,12 +132,33 @@ const searchJobsTest = async (req, res,next) => {
         $unwind: '$companyInfoData',
       },
       {
+        $lookup:{
+          from:'categories',
+          localField:'category',
+          foreignField:'_id',
+          as:'categoryInfo'
+        }
+      },
+      {
+        $unwind: '$categoryInfo',
+      },
+      {
+        $lookup:{
+          from:'jobtypes',
+          localField:'type',
+          foreignField:'_id',
+          as:'jobtypeInfo'
+        }
+      },
+      {
+        $unwind: '$jobtypeInfo',
+      },
+      {
         $project: {
-          category: 1,
-          subCategory: 1,
+          category: '$categoryInfo.name',
           name: 1,
           city: 1,
-          type: 1,
+          type: '$jobtypeInfo.name',
           experience: 1,
           education: 1,
           descriptionOfVacancy: 1,
@@ -550,9 +571,7 @@ const addJob = async (req, res,next) => {
   // console.log(req.user)
   const {user_id:company} = req.user;
   const {
-    // company,
     category,
-    subCategory,
     name,
     city,
     type,
@@ -570,38 +589,29 @@ const addJob = async (req, res,next) => {
     taskInfo
   } = req.body;
   try {
-    await validateRequiredFields(req,res,'subCategory','category','name','descriptionOfVacancy','specialRequirements','skills','endTime','city','experience','education','type');
-    
-    console.log(1)
+    await validateRequiredFields(req,res,'category','name','descriptionOfVacancy','endTime','city','experience','education','type');
     if(agreedSalary && salary) throw {status:400,message:'You can not choise both of section'};
     const companyOne = await Companies.findById(company);
     console.log(2)
     if (!companyOne) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist};
     const expiredTime = new Date().getTime() - new Date(endTime).getTime();
     if (expiredTime > 0) throw {status:400,message:'You can not select date less than current date'}
-      
-        console.log(4)
     const numberOfJobSharing = companyOne.numberOfJobSharing;
-    console.log(5)
     if (numberOfJobSharing === 0) throw {status:400,message:'You can not share vacancy,because your limit is 0'}
-      
-        console.log(6)
     // const {folder,minPoint} = taskInfo;
     const folder = taskInfo?.folder;
     const minPoint = taskInfo?.minPoint
-    console.log(6.5)
     const newJob = new Jobs({
       company:mongoose.Types.ObjectId(company),
-      category,
-      subCategory,
+      category:mongoose.Types.ObjectId(category),
       name,
-      type,
+      type:mongoose.Types.ObjectId(type),
       city,
       experience,
       education,
       descriptionOfVacancy,
-      specialRequirements,
-      skills,
+      specialRequirements:specialRequirements || [],
+      skills:skills || [],
       salary,
       age,
       premium:premium ? premium :false,
@@ -663,16 +673,16 @@ const addJob = async (req, res,next) => {
     //     `
     //   );
     // }
-    const newsLettersEmails = await NewsLetter.find({categories:{$in:[category]}});
-    for (let i of newsLettersEmails) {
-      await sendMail('notification',
-        i.email,
-        "New Job",
-        `Hello dear user,${companyOne.name} added new ${name} job you can apply for this job!...
-        ${applyLinks}
-        `
-      );
-    }
+    // const newsLettersEmails = await NewsLetter.find({categories:{$in:[category]}});
+    // for (let i of newsLettersEmails) {
+    //   await sendMail('notification',
+    //     i.email,
+    //     "New Job",
+    //     `Hello dear user,${companyOne.name} added new ${name} job you can apply for this job!...
+    //     ${applyLinks}
+    //     `
+    //   );
+    // }
     const tg_group_id = process.env.TELEGRAM_GROUP_ID;
     const headOfMessage = "<b>YENİ VAKANSİYA &#128204</b>";
     const infoText = "<b>İş haqda məlumat &#128317</b>";
@@ -682,7 +692,7 @@ const addJob = async (req, res,next) => {
     const href = "https://kingjob.pro/vacancies/" + savedJob._id.toString();
     const applyLink = `<a href="${href}">Buradan müraciət et &#128747</a>`;
     const resMessage = `${headOfMessage}\n\n${infoText}\n\n${companyName}\n${jobName}\n${endOfDate}\n${applyLink}`;
-    await messageSenderToTelegram(tg_group_id, resMessage);
+    // await messageSenderToTelegram(tg_group_id, resMessage);
     await CompanyInfo.findOneAndUpdate(
       { company: company },
       { $inc: { vacancynum: 1 } }

@@ -34,7 +34,8 @@ const {
     deleteExperience,
     getUserWithId,
     userUpdateProfilePhoto,
-    userDeleteProfilePhoto
+    userDeleteProfilePhoto,
+    updateUserCareerInfo
 } = require('../Controller/userController.js');
 const auth = require('../Middleware/auth.js');
 const authAdmin = require('../Middleware/authAdmin.js');
@@ -65,21 +66,22 @@ router.get('/api/getAllUSerSavedJobs/:userId',getAllUserSavedJob);
 router.get('/api/fetchschools',fetchSchools);
 //User profile update\\
 router.put('/api/updateusercarierinfo/:id',updateUserCarierInfo);
-router.delete('/api/deleteeducation/:userId/:educationId',deleteEducation);
+router.delete('/api/deleteeducation/:educationId',auth,deleteEducation);
 router.put('/api/updateeducation/:userId/:educationId',updateEducation);
-router.post('/api/addeducations/:userId',addEducation);
-router.post('/api/addlinks/:userId',addLinks);
+router.post('/api/addeducations',auth,addEducation);
+router.post('/api/addlinks',auth,addLinks);
 router.put('/api/updatelink/:userId/:linkId',updateLink);
 router.delete('/api/deletelink/:userId/:linkId',deleteLink);
-router.post('/api/addachievement/:userId',addAchievement);
+router.post('/api/addachievement/',auth,addAchievement);
 router.put('/api/updateachievement/:userId/:achievementId',updateAchievement);
-router.delete('/api/deleteachievement/:userId/:achievementId',deleteAchievement);
-router.post('/api/addexperience/:userId',addExperience);
+router.delete('/api/deleteachievement/:achievementId',auth,deleteAchievement);
+router.post('/api/addexperience/',auth,addExperience);
 router.put('/api/updateexperience/:userId/:experienceId',updateExperience);
-router.delete('/api/deleteexperience/:userId/:experienceId',deleteExperience);
+router.delete('/api/deleteexperience/:experienceId',auth,deleteExperience);
 router.put('/api/userupdatefile/:id',upload('uploads',['pdf']).single('file'),userAddFile);
 router.delete('/api/userdeletefile/:userId',userDeleteFile);
-router.put('/api/updateprofilephoto/:userId',upload('userprofilepic',['png','jpg','jpeg']).single('file'),userUpdateProfilePhoto);
+router.put('/api/updateprofilephoto/',auth,upload('userprofilepic',['png','jpg','jpeg']).single('file'),userUpdateProfilePhoto);
+router.put('/api/updatecarier',auth,updateUserCareerInfo)
 router.delete('/api/userdeleteprofilephoto/:userId',userDeleteProfilePhoto)
 //End of user profile update\\
 module.exports = router

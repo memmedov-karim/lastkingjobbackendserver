@@ -62,6 +62,8 @@ const cvanalyzerRouter = require('./Router/cvAnalyzRouter.js');
 const messageRouter = require('./Router/messageRouter.js');
 const meetingRouter = require('./Router/meetingRouter.js');
 const taskRouter = require('./Router/taskRouter.js');
+const categoryRouter = require('./Router/categoryRouter.js');
+const jobtypeRouter = require('./Router/jobtypeRouter.js')
 const { default: axios } = require('axios');
 app.use(userRouter);
 app.use(adminRouter);
@@ -74,7 +76,8 @@ app.use(cvanalyzerRouter);
 app.use(messageRouter);
 app.use(meetingRouter);
 app.use(taskRouter);
-
+app.use(categoryRouter);
+app.use(jobtypeRouter);
 //midleware
 app.use(errorHandler);
 ConnectToDb();
