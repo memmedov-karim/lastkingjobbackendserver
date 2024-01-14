@@ -8,17 +8,19 @@ const user = new Schema({
 })
 const job = new Schema({
     company:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:Schema.Types.ObjectId,
         require:true,
         ref:"company"
     },
     category:{
-        type:String,
-        require:true
+        type:Schema.Types.ObjectId,
+        required:true,
+        ref:'categories'
     },
     subCategory:{
         type:String,
         require:true,
+        default:'yox'
     },
     name:{
         type:String,
@@ -29,8 +31,9 @@ const job = new Schema({
         require:true
     },
     type:{
-        type:String,
-        require:true
+        type:Schema.Types.ObjectId,
+        required:true,
+        ref:'jobtypes'
     },
     experience:{
         type:String,

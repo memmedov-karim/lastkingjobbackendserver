@@ -3,11 +3,15 @@ const Schema = mongoose.Schema;
 const achievementsSchema = new Schema({
     name: String,
     certificateUrl: String,
+    startDate:String,
+    endDate:String,
   },{timestamps:true});
 const educationsSchema = new Schema({
     name:String,
+    school:String,
     startDate:String,
     endDate:String,
+    description:String,
     continue:{
         type:Boolean,
         default:false
@@ -15,7 +19,7 @@ const educationsSchema = new Schema({
 },{timestamps:true});
 const linksSchema = new Schema({
     url:String
-},{timestamps:true});
+});
 const experiencesSchema = new Schema({
     companyName:{
         type:String,
@@ -26,24 +30,17 @@ const experiencesSchema = new Schema({
         required:true
     }
     ,
-    relatedLink:{
-        type:String
-    },
     startDate:{
         type:String,
         required:true
     },
     endDate:{
         type:String,
-        default:"present"
+        default:""
     },
     description:{
         type:String,
         default:""
-    },
-    present:{
-        type:Boolean,
-        default:false
     }
 },{timestamps:true});
 const talkingSchema = new Schema({
@@ -68,6 +65,38 @@ const userinfo = new Schema({
     birthday:{
         type:String,
         default:''
+    },
+    jobTitle:{
+        type:String,
+        default:""
+    },
+    phone:{
+        type:String,
+        default:""
+    },
+    currentSalary:{
+        type:String,
+        default:""
+    },
+    expestedSalary:{
+        type:String,
+        default:""
+    },
+    experiencesYear:{
+        type:String,
+        default:""
+    },
+    age:{
+        type:String,
+        default:""
+    },
+    educationlevelNow:{
+        type:String,
+        default:""
+    },
+    languages:{
+        type:String,
+        default:""
     },
     city:{
         type:String,
