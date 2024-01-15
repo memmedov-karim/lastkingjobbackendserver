@@ -809,11 +809,11 @@ const deactivate = async (req,res,next) => {
 }
 const increaseNumberOfViews = async (req, res,next) => {
   console.log("request send for increase numofviews");
-  const job_id = req.params.id;
+  const {id:job_id,checker} = req.params;
   try {
     const updatedJob = await Jobs.findByIdAndUpdate(
       job_id,
-      { $inc: { numberOfViews: 1 } },
+      { $inc: { numberOfViews: checker==='first' ? 1 :0 } },
       { new: true }
     ).populate({
       path: "company",

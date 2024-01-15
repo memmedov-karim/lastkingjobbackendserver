@@ -4,11 +4,11 @@ const Schema = mongoose.Schema;
 
 const chat = new Schema({
     user:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:'Users'
     },
     company:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:'company'
     }
 },{timestamps:true});

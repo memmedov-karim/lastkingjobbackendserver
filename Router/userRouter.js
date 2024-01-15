@@ -57,8 +57,8 @@ router.put('/api/updateUser/:id',updateUser);//Useri update olunmasi
 // router.post('/api/verifyOtp',verifyOtp);//Userin daxil etdiyi otp duzgun olub olmadiqi yoxlanir+++
 router.post('/api/updatePassword',updatePassword);//Otp duzgundurse parolunu deyise biler
 // router.post('/api/verifyEmailandSendOtpForUserRegister',verifyEmailandSendOtpForUserRegister);//+++
-router.post('/api/addJobToSaved/:userId/:jobId',userAddJobToSavedJobs);
-router.get('/api/getAllUSerSavedJobs/:userId',getAllUserSavedJob);
+router.post('/api/addJobToSaved/:jobId',auth,userAddJobToSavedJobs);
+router.get('/api/getAllUSerSavedJobs',auth,getAllUserSavedJob);
 // router.post('/api/postProduct',postProducts)
 
 

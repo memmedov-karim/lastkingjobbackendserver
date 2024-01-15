@@ -22,6 +22,9 @@ const apply = new Schema({
         require:true,
         default:"pending"
     },
+    percentageOfCv:{
+        type:Number,
+    },
     show:{
         type:Boolean,
         require:true,
