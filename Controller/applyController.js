@@ -143,27 +143,91 @@ const getApplys = async (req,res,next) => {
 }
 //2-Her bir userin muraciet etdiyi islerin api-si
 const getApplysForEachUser = async (req,res,next) => {
-    const user_id = req.params.id;
+
+    const {user_id} = req.user;
     try {
         const user = await Users.findById(user_id);
         if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist}
-        const applys = await Applys.find({user:user_id})
-        .populate({
-            path:'user',
-            select:'name email phoneNumber'
-        })
-        .populate({
-            path:'job',
-            select:'category name',
-            populate:{
-                path:'company',
-                select:'name email',
-                populate:{
-                    path:'companyInfo',
-                    select:'logo'
+        const applys = await Applys.aggregate([
+            {$match:{user:mongoose.Types.ObjectId(user_id)}},
+            {
+                $lookup:{
+                    from:'users',
+                    localField:'user',
+                    foreignField:'_id',
+                    as:'userInfo'
+                }
+            },
+            {$unwind:'$userInfo'},
+            {
+                $lookup:{
+                    from:'jobs',
+                    localField:'job',
+                    foreignField:'_id',
+                    as:'jobInfo'
+                }
+            },
+            {$unwind:'$jobInfo'},
+            {
+                $lookup:{
+                    from:'categories',
+                    localField:'jobInfo.category',
+                    foreignField:'_id',
+                    as:'categoryInfo'
+                }
+            },
+            {$unwind:'$categoryInfo'},
+            {
+                $lookup:{
+                    from:'companies',
+                    localField:'jobInfo.company',
+                    foreignField:'_id',
+                    as:'companyInfo'
+                }
+            },
+            {$unwind:'$companyInfo'},
+            {
+                $lookup:{
+                    from:'companyinfos',
+                    localField:'companyInfo.companyInfo',
+                    foreignField:'_id',
+                    as:'companyInfoInfo'
+                }
+            },
+            {$unwind:'$companyInfoInfo'},
+            {
+                $project:{
+                    createdAt:1,
+                    file:1,
+                    status:1,
+                    taskInfo:1,
+                    companyName:'$companyInfo.name',
+                    companyLogo:'$companyInfoInfo.logo',
+                    jobName:'$jobInfo.name',
+                    jobCity:'$jobInfo.city',
+                    jobType:'$jobInfo.type',
+                    category:'$categoryInfo.name',
+                    jobId:'$jobInfo._id'
+
                 }
             }
-        })
+        ])
+        // .populate({
+        //     path:'user',
+        //     select:'name email phoneNumber'
+        // })
+        // .populate({
+        //     path:'job',
+        //     select:'category name',
+        //     populate:{
+        //         path:'company',
+        //         select:'name email',
+        //         populate:{
+        //             path:'companyInfo',
+        //             select:'logo'
+        //         }
+        //     }
+        // })
         return res.status(200).json({success:true,message:"User applys"+successConstants.fetchingSuccess.fetchedSuccesfully,data:applys})
     } catch (error) {
         next(error);
@@ -271,14 +335,14 @@ const getApplysForEachCompany = async (req,res,next) => {
 }
 //4-Userin is ucun muraciet etdiyi api
 const postApply = async (req,res,next) => {
-    let {user,job,myCv} = req.body;
-    myCv = JSON.parse(myCv);
+    const {user_id:user} = req.user;
+    let {job} = req.body;
     const file = req.file || null;
     try {
         const users = await Users.findById(user);
         if(!users) throw {status:404,message:errorConstants.userErrors.userdoesntExsist};
-        if(file === null && myCv===false) throw {status:400,message:'Please select correct format for cv'};
-        if( !myCv && file && file.mimetype !== 'application/pdf') throw {status:400,message:'Cv file must be in pdf format'};
+        // if(file === null) throw {status:400,message:'Please select correct format for cv'};
+        if(file && file.mimetype !== 'application/pdf') throw {status:400,message:'Cv file must be in pdf format'};
         const jobs = await Jobs.aggregate([
             {$match:{_id:mongoose.Types.ObjectId(job)}},
             {
@@ -325,27 +389,30 @@ const postApply = async (req,res,next) => {
                 autoDelete: 1,
                 active: 1,
                 companyName: '$companyInfo.name',
-                companyId: '$companyInfo.companyInfo',
+                companyId: '$companyInfo._id',
                 logo: '$companyInfoData.logo',
               },
             },
           ]);
-        if(!jobs || jobs.length ===0) {return res.status(200).json({succes:false,message:"There is not job with this Id!..."})};
+        if(!jobs || jobs.length ===0) throw {status:404,message:'Job not found'};
         const {companyId:companyInfoId} = jobs[0];
-        const userInfo = await UserInfo.findOne({user:user});
-        if(myCv && userInfo.file==="") throw {status:404,message:'You have not cv in your profile'}
-        const applyOne = await Applys.find({user:user,job:job});
+        const userInfo = await UserInfo.findOne({user});
+        if(userInfo.file==="") throw {status:404,message:'You have not cv in your profile'}
+        const applyOne = await Applys.find({user,job});
         // console.log(applyOne)
         if(applyOne.length!==0) throw {status:400,message:'You can apply one time'};
         console.log("after apply")
         // console.log(req.body)
         // const filePath = path.join(__dirname, '..','public' ,'uploads', myCv ? users.file : file.filename);
         // console.log(filePath)
-        // const percentageOfCv = await getPercentage(filePath,jobs.skills);
+        const lastFile = file ? file.location : userInfo?.file
+        const percentageOfCv = await getPercentage(lastFile,jobs[0].skills);
+        // console.log("faiz",percentageOfCv)
         const newApply = new Applys({
             user:user,
             job:job,
-            file:myCv ? userInfo?.file : file.location,
+            file: lastFile,
+            percentageOfCv
         })
         const savedApply = await newApply.save();
         // console.log(user,(jobs?.company)?._id.toString())
@@ -361,7 +428,7 @@ const postApply = async (req,res,next) => {
         const content = generateHtmlForToSendApplyMessage(users?.name,jobs[0].name,jobs[0].companyName,jobs[0].logo);
         await sendMail('notification',users.email,"Application Feedback",content);
         const updatedJob = await Jobs.findByIdAndUpdate(job,{$inc : {numberOfApplys:1}},{new:true})
-        const checkcvHasnot = (!myCv && userInfo.file==="");
+        const checkcvHasnot = (userInfo.file==="");
         if(checkcvHasnot){
             await UserInfo.findByIdAndUpdate(users.userinfo,{file:file.location})
         }

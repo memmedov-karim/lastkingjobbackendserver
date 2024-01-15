@@ -1,5 +1,5 @@
 //Every status code modifyed
-
+const mongoose = require('mongoose')
 
 //MODELS
 const { Users } = require('../Model/userModel.js');
@@ -25,19 +25,40 @@ const {successConstants} = require('../Utils/Constants/successConstants.js');
 
 
 const userMessagers = async (req,res,next) => {
-    const {userId} = req.params;
+    const {user_id:userId} = req.user;
     try {
         const user = await Users.findById(userId);
         if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist};
-        const messager = await Chats.find({user:userId})
-        .populate({
-            path:'company',
-            select:'name',
-            populate:{
-                path:'companyInfo',
-                select:'logo'
+        const messager = await Chats.
+        aggregate([
+            {$match:{user:new mongoose.Types.ObjectId(userId)}},
+            {
+                $lookup:{
+                    from:'companies',
+                    localField:'company',
+                    foreignField:'_id',
+                    as:'companyInfo'
+                }
+            },
+            {$unwind:'$companyInfo'},
+            {
+                $lookup:{
+                    from:'companyinfos',
+                    localField:'companyInfo.companyInfo',
+                    foreignField:'_id',
+                    as:'companyInfoInfo'
+                }
+            },
+            {$unwind:'$companyInfoInfo'},
+            {
+                $project:{
+                    companyName:'$companyInfo.name',
+                    companyLogo:'$companyInfoInfo.logo',
+                    companyId:'$companyInfo._id',
+                    createdAt:1
+                }
             }
-        })
+        ])
         return res.status(200).json({success:true,message:'Fetched',data:messager}); 
     } catch (error) {
         next(error);

@@ -106,6 +106,10 @@ const userinfo = new Schema({
         type:String,
         default:""
     },
+    skills:{
+        type:Array,
+        default:[]
+    },
     file:{
         type:String,
         default:""

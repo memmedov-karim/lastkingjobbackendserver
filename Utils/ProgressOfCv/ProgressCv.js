@@ -37,7 +37,7 @@ async function getPercentage(pdfFileUrl, specialRequirements) {
     // console.log(fixed)
     const text = data.text.trim();
     let numsOfEqualsSkills = numOfWords(text,uniqueArray);
-    let percentage = `${parseInt((numsOfEqualsSkills / numberOfSpecialRequirements) * 100)}%`;
+    let percentage = parseInt((numsOfEqualsSkills / numberOfSpecialRequirements) * 100)
     return percentage;
   });
 }

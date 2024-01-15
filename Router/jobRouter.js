@@ -24,7 +24,7 @@ router.get('/api/advancesearch',advancedSearch);//Search bardan axtaris
 router.get('/api/searchJobsTest',searchJobsTest);
 router.get('/api/getJobWithId/:id',getJobWithId) //Id ye gore isin yerlesdiyi api
 router.post('/api/addJob',auth,addJob);//Sayta yeni is derc etmek
-router.put('/api/increaseNumberOfViews/:id',increaseNumberOfViews) //Ise tiklayanda baxis sayinin artmasi
+router.put('/api/increaseNumberOfViews/:id/:checker',increaseNumberOfViews) //Ise tiklayanda baxis sayinin artmasi
 router.put('/api/increaseNumberOfApplys/:id',increaseNumberOfApplys);//Ise muraciet edende muraciet sayinin artmasi
 router.put('/api/updateJob/:id',updateJob);//Sirket paylasdiqi isi yeniden deyisir
 router.put('/api/deactivate/:jobId',deactivate);

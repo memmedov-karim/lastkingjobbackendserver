@@ -219,11 +219,13 @@ const updateUserCareerInfo = async (req, res, next) => {
     jobTitle,
     phone,
     currentSalary,
-    expectedSalary,
+    expestedSalary,
     experiencesYear,
     age,
     educationLevelNow,
     languages,
+    coverLetter,
+    city,skills
   } = req.body;
   const { user_id: userId } = req.user;
 
@@ -255,11 +257,14 @@ const updateUserCareerInfo = async (req, res, next) => {
         jobTitle: jobTitle || userInfo.jobTitle,
         phone: phone || userInfo.phone,
         currentSalary: currentSalary || userInfo.currentSalary,
-        expestedSalary: expectedSalary || userInfo.expestedSalary,
+        expestedSalary: expestedSalary || userInfo.expestedSalary,
         experiencesYear: experiencesYear || userInfo.experiencesYear,
         age: age || userInfo.age,
         educationlevelNow: educationLevelNow || userInfo.educationlevelNow,
         languages: languages || userInfo.languages,
+        coverLetter:coverLetter || userInfo.coverLetter,
+        city:city || userInfo.city,
+        skills:skills || userInfo.skills
       },
       { new: true }
     );
@@ -697,7 +702,8 @@ const userDeleteProfilePhoto = async (req,res,next) => {
 
 
 const userAddJobToSavedJobs = async (req,res,next) => {
-  const {userId,jobId} = req.params;
+  const {jobId} = req.params;
+  const {user_id:userId} = req.user;
   try {
     const job = await Jobs.findById(jobId);
     if(!job) throw {status:404,message:'JOB'+errorConstants.userErrors.doesntExsist};
@@ -719,19 +725,12 @@ const userAddJobToSavedJobs = async (req,res,next) => {
 }
 
 const getAllUserSavedJob = async (req,res,next)=>{
-  const {userId} = req.params;
+  const {user_id:userId} = req.user;
   console.log(userId)
   try {
     const userOne = await Users.findById(userId);
     if(!userOne) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
     const savedJobs = await SavedJobs.find({user:userId})
-    // .populate({
-    //   path:'job',
-    //   populate:{
-    //     path:'company',
-    //     select:'name'
-    //   }
-    // })
     return res.status(200).json({success:true,message:"SavedJobs"+successConstants.fetchingSuccess.fetchedSuccesfully,data:savedJobs});
   } catch (error) {
     next(error);
