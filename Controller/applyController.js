@@ -397,7 +397,7 @@ const postApply = async (req,res,next) => {
         if(!jobs || jobs.length ===0) throw {status:404,message:'Job not found'};
         const {companyId:companyInfoId} = jobs[0];
         const userInfo = await UserInfo.findOne({user});
-        if(userInfo.file==="") throw {status:404,message:'You have not cv in your profile'}
+        if(file===null && userInfo.file==="") throw {status:404,message:'You have not cv in your profile'}
         const applyOne = await Applys.find({user,job});
         // console.log(applyOne)
         if(applyOne.length!==0) throw {status:400,message:'You can apply one time'};

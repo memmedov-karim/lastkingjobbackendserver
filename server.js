@@ -82,7 +82,7 @@ app.use(jobtypeRouter);
 app.use(errorHandler);
 ConnectToDb();
 // const percentageOfCv = getPercentage('https://kingjobbackend.s3.eu-north-1.amazonaws.com/uploads/1694174057032-MyLastCv.pdf',['node','react','javascript','python','c#']);
-// // console.log(percentageOfCv)
+// // console.log(percentageOfCv)code .
 // percentageOfCv.then(dt=>console.log(dt))
 //zolkxixiyxccfcpi
 // Cluster setup
