@@ -706,6 +706,8 @@ const userAddJobToSavedJobs = async (req,res,next) => {
   const {user_id:userId} = req.user;
   try {
     const job = await Jobs.findById(jobId);
+    const user = await Users.findById(userId);
+    if(!user) throw {status:404,message:'User not found'}
     if(!job) throw {status:404,message:'JOB'+errorConstants.userErrors.doesntExsist};
     const savedJob = await SavedJobs.findOne({user:userId,job:jobId});
     console.log(savedJob)
@@ -740,42 +742,100 @@ const getAllUserSavedJob = async (req,res,next)=>{
 
 
 
-const getUserNotifications = async (req,res,next) => {
-  const {id:user_id} = req.params;
+const getUserNotifications = async (req, res, next) => {
+  const { id: user_id } = req.params;
+
   try {
-    const notifications = await Users.findById(user_id)
-    .populate({
-      path:'notifications',
-      select:'types',
-      populate:{
-        path:'apply',
-        select:'status',
-        populate:[
-          {
-            path:'user',
-            select:'name'
-          },
-          {
-            path:'job',
-            select:'name category',
-            populate:{
-              path:'company',
-              select:'name',
-              populate:{
-                path:'companyInfo',
-                select:'logo'
-              }
-            }
-          }
-        ]
-      }
+    const notifications = await Users.aggregate([
+      {
+        $match: { _id: new mongoose.Types.ObjectId(user_id) }
+      },
+      {
+        $unwind: "$notifications"
+      },
+      // {
+      //   $lookup: {
+      //     from: 'applyes',
+      //     localField: 'notifications.apply',
+      //     foreignField: '_id',
+      //     as: 'notifications.apply'
+      //   }
+      // },
+      // {
+      //   $unwind: '$notifications.apply'
+      // },
+      // {
+      //   $lookup: {
+      //     from: 'users',
+      //     localField: 'notifications.apply.user',
+      //     foreignField: '_id',
+      //     as: 'notifications.apply.user'
+      //   }
+      // },
+      // {
+      //   $unwind: '$notifications.apply.user'
+      // },
+      // {
+      //   $lookup: {
+      //     from: 'jobs',
+      //     localField: 'notifications.apply.job',
+      //     foreignField: '_id',
+      //     as: 'notifications.apply.job'
+      //   }
+      // },
+      // {
+      //   $unwind: '$notifications.apply.job'
+      // },
+      // {
+      //   $lookup: {
+      //     from: 'companies',
+      //     localField: 'notifications.apply.job.company',
+      //     foreignField: '_id',
+      //     as: 'notifications.apply.job.company'
+      //   }
+      // },
+      // {
+      //   $unwind: '$notifications.apply.job.company'
+      // },
+      // {
+      //   $lookup: {
+      //     from: 'companyinfos',
+      //     localField: 'notifications.apply.job.company.companyInfo',
+      //     foreignField: '_id',
+      //     as: 'notifications.apply.job.company.companyInfo'
+      //   }
+      // },
+      // {
+      //   $unwind: '$notifications.apply.job.company.companyInfo'
+      // },
+      // {
+      //   $group: {
+      //     _id: '$_id',
+      //     notifications: { $push: '$notifications' }
+      //   }
+      // },
+      // {
+      //   $project: {
+      //     _id: 1,
+      //     notifications: 1
+      //   }
+      // }
+    ]);
+
+    if (!notifications || notifications.length === 0) {
+      throw { status: 404, message: errorConstants.userErrors.userdoesntExsist + ' ID' };
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Notifications' + successConstants.fetchingSuccess.fetchedSuccesfully,
+      notifications: notifications[0].notifications
     });
-    if(!notifications) throw {status:404,message:errorConstants.userErrors.userdoesntExsist+"ID"};
-    return res.status(200).json({success:true,message:'Notifications'+successConstants.fetchingSuccess.fetchedSuccesfully,notifications:notifications.notifications})
   } catch (error) {
     next(error);
   }
-}
+};
+
 const sendNotificationToUser = async (userid,applyid,types) => {
   const notifysendeduser = await Users.findByIdAndUpdate(userid,{$push:{notifications:{apply:applyid,types:types}}},{new:true})
   // .populate({

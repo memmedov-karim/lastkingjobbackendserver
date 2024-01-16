@@ -26,8 +26,8 @@ const companyInfoSchema = new Schema({
         default:""
     },
     originHistory:{
-        type:Date, 
-        default:null
+        type:String, 
+        default:""
     },
     logo:{
         type:String,
