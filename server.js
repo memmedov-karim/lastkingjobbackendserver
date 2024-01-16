@@ -64,6 +64,7 @@ const meetingRouter = require('./Router/meetingRouter.js');
 const taskRouter = require('./Router/taskRouter.js');
 const categoryRouter = require('./Router/categoryRouter.js');
 const jobtypeRouter = require('./Router/jobtypeRouter.js')
+const applystatusRouter = require('./Router/applystatusRouter.js');
 const { default: axios } = require('axios');
 app.use(userRouter);
 app.use(adminRouter);
@@ -78,6 +79,7 @@ app.use(meetingRouter);
 app.use(taskRouter);
 app.use(categoryRouter);
 app.use(jobtypeRouter);
+app.use(applystatusRouter);
 //midleware
 app.use(errorHandler);
 ConnectToDb();

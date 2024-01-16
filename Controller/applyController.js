@@ -196,10 +196,19 @@ const getApplysForEachUser = async (req,res,next) => {
             },
             {$unwind:'$companyInfoInfo'},
             {
+                $lookup:{
+                    from:'applystatuses',
+                    localField:'status',
+                    foreignField:'_id',
+                    as:'statusInfo'
+                }
+            },
+            {$unwind:'$statusInfo'},
+            {
                 $project:{
                     createdAt:1,
                     file:1,
-                    status:1,
+                    status:{name:'$statusInfo.name',color:'$statusInfo.color',_id:'$statusInfo._id'},
                     taskInfo:1,
                     companyName:'$companyInfo.name',
                     companyLogo:'$companyInfoInfo.logo',
