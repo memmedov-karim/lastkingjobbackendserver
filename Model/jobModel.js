@@ -17,11 +17,6 @@ const job = new Schema({
         required:true,
         ref:'categories'
     },
-    subCategory:{
-        type:String,
-        require:true,
-        default:'yox'
-    },
     name:{
         type:String,
         require:true
@@ -47,16 +42,13 @@ const job = new Schema({
         type:String,
         require:true
     },
-    specialRequirements:{
-        type:Array,
-        require:true
-    },
     skills:{
         type:Array,
         require:true
     },
     salary:{
         type:Number,
+        default:null
     },
     numberOfViews:{
         type:Number,
@@ -74,11 +66,6 @@ const job = new Schema({
         type:Date,
         require:true
     },
-    autoDelete:{
-        type:Boolean,
-        required:true,
-        default:false
-    },
     active:{
         type:Boolean,
         required:true,
@@ -94,7 +81,7 @@ const job = new Schema({
     },
     age:{
         type:String,
-        default:"Minimum 21"
+        default:"18-25"
     },
     taskInfo:{
         folder:{

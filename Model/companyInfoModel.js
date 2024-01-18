@@ -1,23 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-const levelSchema = new Schema({
-    level:{
-        type:String,
-        required:true
-    },
-    color:{
-        type:String,
-        required:true
-    },
-    message:{
-        type:String,
-        required:true,
-        default:""
-    }
-})
 const companyInfoSchema = new Schema({
     company:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:Schema.Types.ObjectId,
         required:true,
         ref:'company'
     },
@@ -25,13 +10,25 @@ const companyInfoSchema = new Schema({
         type:String,
         default:""
     },
-    originHistory:{
-        type:String, 
+    website:{
+        type:String,
         default:""
+    },
+    phone:{
+        type:String,
+        defaulkt:""
+    },
+    categories:{
+        type:Array,
+        default:[]
     },
     logo:{
         type:String,
-        default:null
+        default:""
+    },
+    city:{
+        type:String,
+        default:""
     },
     vacancynum:{
         type:Number,
@@ -44,9 +41,8 @@ const companyInfoSchema = new Schema({
         default:0
     },
     workers:[{type:String,ref:'Users'}],
-    levelofapplyers:[levelSchema],
     subscription:{
-        type:mongoose.Schema.Types.ObjectId,
+        type:Schema.Types.ObjectId,
         ref:'subscription'
     }
 

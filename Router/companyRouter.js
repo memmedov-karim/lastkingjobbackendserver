@@ -22,6 +22,7 @@ const {
     getMontlhyVakansyData
     // validatecompanysignupdetail
 } = require('../Controller/companyController.js');
+const auth = require('../Middleware/auth.js');
 router.use(express.static('public'))
 router.get('/api/getCompanies',getCompanies); // Umumi qeydiyyatda olan sirketlerin api-si
 router.get('/api/getcompanyinfos',getCompaniesInfo)
@@ -30,10 +31,10 @@ router.post('/api/registerCompany',registerCompany);//Sirket maile gelen otp kod
 // router.post('/api/validatecompanysignupdetail',validatecompanysignupdetail);
 router.get('/api/getCompanyDeletingDescriptions',getCompanyDeletingDescriptions); //Sirketler oz hesablarini silende niye sildiklerini bildirirler onlari api-si
 router.post('/api/deleteCompanyAccount',deleteCompanyAccount);//Sirket oz hesabini silir
-router.get('/api/jobsEachCompany/:id',getJobsSharedEachCompany);//Her bir sirektin paylasdiqi islerin api-si
+router.get('/api/jobsEachCompany',auth,getJobsSharedEachCompany);//Her bir sirektin paylasdiqi islerin api-si
 router.post('/api/loginCompany',loginCompany);//Sirket oz hesabina daxil olur
 // router.get('/api/logoutCompany',logoutCompany); //Sirket hesabdan cixir
-router.put('/api/updateCompanyInfo/:id',upload('logos',['png','jpg','jpeg'],"companyreg").single('file'),updateCompanyInfo);//Sirket melumatlarin update edir
+router.put('/api/updateCompanyInfo',auth,upload('logos',['png','jpg','jpeg']).single('file'),updateCompanyInfo);//Sirket melumatlarin update edir
 router.get('/api/blockCompanyAccount/:id',blockCompanyAccount);//Sirketin mailine yad giris mesaji gelse maile gelen link ile sirket oz hesabin muveqqeti bloklaya biler,ve hesabini parolunu deyise biler
 // router.post('/api/sendOtpForPasswordChanging',sendOtpForPasswordChanging);//Sirket oz parolun deyismek istedikde tehlukesiszlik ucun onun mailine otp kod gonderilir
 router.post('/api/changeCompanyAccountPassword',changeCompanyAccountPassword);//Maile gelen otp kodu duzgun daxil etse hesabin parolunu deyise bilir ve eyer hesabi blokdadisa avtamatik olaraq blokdan cixir
@@ -42,4 +43,6 @@ router.get('/api/getNumbersForCompanyMenu/:company_id',getNumbersForCompanyMenu)
 router.get('/api/getMontlhyVakansyData/:company_id',getMontlhyVakansyData);
 // router.post('/api/verifyCompanyOtp',verifyOtp);
 router.post('/api/changecompanyforgottenpassword',changeCompanyForgottenPassword);
+
+//,upload('logos',['png','jpg','jpeg'],"companyreg").single('file')
 module.exports =  router;
