@@ -243,7 +243,7 @@ const getApplysForEachUser = async (req,res,next) => {
     }
 }
 const getApplysForEachCompanyOnlyTestLevel = async (req,res,next) => {
-    const {company_id} = req.params;
+    const {user_id:company_id} = req.user;
     try {
         const companyapplyes = await Applys.aggregate([
             {
@@ -266,13 +266,36 @@ const getApplysForEachCompanyOnlyTestLevel = async (req,res,next) => {
             },
             {$unwind:'$userInfo'},
             {
+                $lookup:{
+                    from:'userinfos',
+                    localField:'userInfo.userinfo',
+                    foreignField:'_id',
+                    as:'userInfoInfo'
+                }
+            },
+            {$unwind:'$userInfoInfo'},
+            {
+                $lookup:{
+                    from:'applystatuses',
+                    localField:'status',
+                    foreignField:'_id',
+                    as:'statusInfo'
+                }
+            },
+            {$unwind:'$statusInfo'},
+            {
                 $project:{
                     job:1,
                     file:1,
-                    status:1,
-                    userName:'$userInfo.name',
-                    userEmail:'$userInfo.email',
+                    percentageOfCv:1,
+                    profilepic:'$userInfoInfo.profilepic',
+                    status:{name:'$statusInfo.name',color:'$statusInfo.color',_id:'$statusInfo._id',icon:'$statusInfo.icon'},
                     jobName:'$jobInfo.name',
+                    userName:'$userInfo.name',
+                    skills:'$userInfoInfo.skills',
+                    jobTitle:'$userInfoInfo.jobTitle',
+                    userCity:'$userInfoInfo.city'
+
                 }
             },
             // {
@@ -673,7 +696,96 @@ const companyDeleteApply = async (req,res,next) => {
     }
 
 }
+const getApplywithId = async (req,res,next) => {
+    const {applyId} = req.params;
+    const {user_id:companyId} = req.user;
+    try {
+        const data = await Applys.aggregate([
+            {$match:{_id:new mongoose.Types.ObjectId(applyId)}},
+            {
+                $lookup:{
+                    from:'users',
+                    localField:'user',
+                    foreignField:'_id',
+                    as:'userInfo'
+                }
+            },
+            {$unwind:'$userInfo'},
+            {
+                $lookup:{
+                    from:'userinfos',
+                    localField:'userInfo.userinfo',
+                    foreignField:'_id',
+                    as:'userInfoInfo'
+                }
+            },
+            {$unwind:'$userInfoInfo'},
+            {
+                $lookup:{
+                    from:'applystatuses',
+                    localField:'status',
+                    foreignField:'_id',
+                    as:'statusInfo'
+                }
+            },
+            {$unwind:'$statusInfo'},
+            {
+                $lookup:{
+                    from:'jobs',
+                    localField:'job',
+                    foreignField:'_id',
+                    as:'jobInfo'
+                }
+            },
+            {$unwind:'$jobInfo'},
+            {$match:{'jobInfo.company':new mongoose.Types.ObjectId(companyId)}},
+            {
+                $project:{
+                    status:'$statusInfo',
+                    file:1,
+                    percentageOfCv:1,
+                    taskInfo:1,
+                    user:{
+                        name:'$userInfo.name',
+                        email:'$userInfo.email',
+                        bithday:'$userInfoInfo.birthday',
+                        city:'$userInfoInfo.city',
+                        profilepic:'$userInfoInfo.profilepic',
+                        file:'$userInfoInfo.file',
+                        coverLetter:'$userInfoInfo.coverLetter',
+                        achievements:'$userInfoInfo.achievements',
+                        links:'$userInfoInfo.links',
+                        experiences:'$userInfoInfo.experiences',
+                        educations:'$userInfoInfo.educations',
+                        age:'$userInfoInfo.age',
+                        currentSalary:'$userInfoInfo.currentSalary',
+                        educationlevelNow:'$userInfoInfo.educationlevelNow',
+                        experiencesYear:'$userInfoInfo.experiencesYear',
+                        expestedSalary:'$userInfoInfo.expestedSalary',
+                        jobTitle:'$userInfoInfo.jobTitle',
+                        languages:'$userInfoInfo.languages',
+                        phone:'$userInfoInfo.phone',
+                        skills:'$userInfoInfo.skills'
+                    },
+                    job:{
+                        name:'$jobInfo.name',
+                        city:'$jobInfo.city',
+                        experience:'$jobInfo.experience',
+                        education:'$jobInfo.education',
+                        skills:'$jobInfo.skills',
+                        salary:'$jobInfo.salary',
+                    }
+                }
+            }
+        ])
 
+        if(!data || data.length===0) throw {status:404,message:'Apply not found'};
+
+        return res.status(200).json({success:true,message:'Fetched',data:data[0]})
+    } catch (error) {
+        next(error);
+    }
+}
 
 //  cron.schedule('0 * * * * *',async()=>{
 //      const now = new Date();
@@ -777,7 +889,8 @@ module.exports = {
     getRemovedApplysEachUser,
     companyDeleteApply,
     getApplysForEachCompanyOnlyTestLevel,
-    getPdf
+    getPdf,
+    getApplywithId
 
     
 }

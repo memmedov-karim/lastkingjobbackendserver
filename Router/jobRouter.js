@@ -27,7 +27,7 @@ router.post('/api/addJob',auth,addJob);//Sayta yeni is derc etmek
 router.put('/api/increaseNumberOfViews/:id/:checker',increaseNumberOfViews) //Ise tiklayanda baxis sayinin artmasi
 router.put('/api/increaseNumberOfApplys/:id',increaseNumberOfApplys);//Ise muraciet edende muraciet sayinin artmasi
 router.put('/api/updateJob/:id',updateJob);//Sirket paylasdiqi isi yeniden deyisir
-router.put('/api/deactivate/:jobId',deactivate);
+router.put('/api/deactivate/:jobId',auth,deactivate);
 router.delete('/api/deleteJob/:id',deleteJob);//Sirket paylasdiqi isi silir 
 // router.get('/api/checkExpiredJobsAndDelet',checkExpiredJobsAndDelet);
 router.get('/api/getctgsubctg',getCategoryandSubcategory);
