@@ -578,7 +578,6 @@ const addJob = async (req, res,next) => {
     experience,
     education,
     descriptionOfVacancy,
-    specialRequirements,
     skills,
     salary,
     premium,
@@ -588,11 +587,12 @@ const addJob = async (req, res,next) => {
     age,
     taskInfo
   } = req.body;
+  // console.log(req.body)
   try {
-    await validateRequiredFields(req,res,'category','name','descriptionOfVacancy','endTime','city','experience','education','type');
+    await validateRequiredFields(req,res,'category','name','descriptionOfVacancy','endTime','type');
     if(agreedSalary && salary) throw {status:400,message:'You can not choise both of section'};
     const companyOne = await Companies.findById(company);
-    console.log(2)
+    // console.log(2)
     if (!companyOne) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist};
     const expiredTime = new Date().getTime() - new Date(endTime).getTime();
     if (expiredTime > 0) throw {status:400,message:'You can not select date less than current date'}
@@ -610,11 +610,10 @@ const addJob = async (req, res,next) => {
       experience,
       education,
       descriptionOfVacancy,
-      specialRequirements:specialRequirements || [],
       skills:skills || [],
       salary,
       age,
-      premium:premium ? premium :false,
+      premium:false,
       endTime: new Date(endTime),
       salaryType,
       agreedSalary,
@@ -623,9 +622,50 @@ const addJob = async (req, res,next) => {
         minPoint
       }
     });
-    console.log(7)
-    const savedJob = await newJob.save();
-    console.log(8)
+    // console.log(7)
+    const sv = await newJob.save();
+    const [savedJob] = await Jobs.aggregate([
+      {$match:{_id:new mongoose.Types.ObjectId(sv._id)}},
+      {
+        $lookup:{
+          from:'categories',
+          localField:'category',
+          foreignField:'_id',
+          as:'categoryInfo'
+        }
+      },
+      {$unwind:'$categoryInfo'},
+      {
+        $lookup:{
+          from:'jobtypes',
+          localField:'type',
+          foreignField:'_id',
+          as:'jobtypeInfo'
+        }
+      },
+      {$unwind:'$jobtypeInfo'},
+      {
+        $project:{
+          name:1,
+          numberOfViews:1,
+          numberOfApplys:1,
+          active:1,
+          salary:1,
+          salaryType:1,
+          agreedSalary:1,
+          city:1,
+          age:1,
+          experience:1,
+          education:1,
+          createdAt:1,
+          endTime:1,
+          categoryInfo:1,
+          jobtypeInfo:1,
+
+        }
+      }
+    ]);
+    console.log(savedJob)
     await Companies.findByIdAndUpdate(company, {
       $inc: { numberOfJobSharing:premium ? -3 : -2 },
     });

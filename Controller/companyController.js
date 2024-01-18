@@ -21,7 +21,7 @@ const { sendMail } = require('../Utils/EmailSend/SendEmail.js');
 const { sendOneToManyEmails } = require("../Utils/SendMultiEmail/SendMailToMany.js");
 const { deleFile } = require("../Utils/FileDelete/fileDelete.js");
 const { validateRequiredFields } = require('../Utils/ValidateId/bodyValidator.js');
-
+const { isValidId } = require("../Utils/ValidateId/IsValidId.js");
 //SOCKETS
 const {getSocketInstance} = require('../socket.js');
 
@@ -70,12 +70,53 @@ const getCompaniesInfo = async (req,res,next) => {
     }
 }
 const getJobsSharedEachCompany = async (req,res,next) => {
-    const company_id = req.params.id;
+    // const company_id = req.params.id;
+    const {user_id:company_id} = req.user;
     try {
         // console.log(company_id)
         const company = await Companies.findById(company_id);
         if(!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist}
-        const jobs = await Jobs.find({company:company_id});
+        const jobs = await Jobs.aggregate([
+          {$match:{company:new mongoose.Types.ObjectId(company_id)}},
+          {
+            $lookup:{
+              from:'categories',
+              localField:'category',
+              foreignField:'_id',
+              as:'categoryInfo'
+            }
+          },
+          {$unwind:'$categoryInfo'},
+          {
+            $lookup:{
+              from:'jobtypes',
+              localField:'type',
+              foreignField:'_id',
+              as:'jobtypeInfo'
+            }
+          },
+          {$unwind:'$jobtypeInfo'},
+          {
+            $project:{
+              name:1,
+              numberOfViews:1,
+              numberOfApplys:1,
+              active:1,
+              salary:1,
+              salaryType:1,
+              agreedSalary:1,
+              city:1,
+              age:1,
+              experience:1,
+              education:1,
+              createdAt:1,
+              endTime:1,
+              categoryInfo:1,
+              jobtypeInfo:1,
+
+            }
+          }
+        ]);
         return res.status(200).json({success:true,data:jobs,message:'Jobs'+successConstants.fetchingSuccess.fetchedSuccesfully});
     } catch (error) {
         next(error);
@@ -144,27 +185,60 @@ const loginCompany = async (req,res,next) =>{
         next(error);
     }
 }
-const updateCompanyInfo = async (req,res,next) => {
-    const company_id = req.params.id;
-    const {newInfoAboutCompany} = req.body;
-    const {file} = req;
-    try {
-        const companyOne = await Companies.findById(company_id);
-        if(!companyOne) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist};
-        const companyInfo = await CompanyInfo.findOne({company:company_id});
-        const updated = await CompanyInfo.findOneAndUpdate(
-            {company:company_id},
-            {
-                info:newInfoAboutCompany ? newInfoAboutCompany : companyInfo.info,
-                logo:file ? file.location : companyInfo.logo
-            },
-            {new:true}
-        )
-        return res.status(200).json({success:true,message:`Company`+successConstants.updatingSuccess.updatedSuccesfully,updated})
-    } catch (error) {
-      next(error);  
+const updateCompanyInfo = async (req, res, next) => {
+  const {
+    info,
+    phone,
+    website,
+    categories,
+    city
+  } = req.body;
+  // console.log(req.body)
+  const file = req.file;
+  const { user_id: userId } = req.user;
+  try {
+    if (!isValidId(userId)) {
+      throw { status: 400, message: errorConstants.generalErrors.isnotvalidId };
     }
-}
+
+    const companyOne = await Companies.findById(userId);
+    if (!companyOne) {
+      throw {
+        status: 404,
+        message: errorConstants.userErrors.userdoesntExsist + "ID",
+      };
+    }
+
+    const companyInfo = await CompanyInfo.findById(companyOne.companyInfo);
+    if (!companyInfo) {
+      throw {
+        status: 404,
+        message: errorConstants.userErrors.userdoesntExsist + "User Info",
+      };
+    }
+
+    // Update user career information
+    const updatedInfo = await CompanyInfo.findByIdAndUpdate(
+      companyOne.companyInfo,
+      {
+        info: info || companyInfo.info,
+        phone: phone || companyInfo.phone,
+        website: website || companyInfo.website,
+        categories: categories || companyInfo.categories,
+        logo:file ? file.location : companyInfo.logo,
+        city:city || companyInfo.city
+      },
+      { new: true }
+    );
+    return res.status(200).json({
+      success: true,
+      message: "Company information updated successfully",
+      data: updatedInfo,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 const getCompanyDeletingDescriptions = async (req,res,next) => {
     try {
         const deletingcompanyDescriptions = await companydeletingDescriptions.find({});
