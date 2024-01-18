@@ -9,6 +9,10 @@ const applystatusSchema = new Schema({
     color:{
         type:String,
         required:true
+    },
+    icon:{
+        type:String,
+        default:""
     }
 })
 

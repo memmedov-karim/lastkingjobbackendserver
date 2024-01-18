@@ -1,4 +1,4 @@
-const { getApplys,postApply,companyAcceptUserApply, getAcceptedApplys,companyDeleteApply,getUserRemovedApplysAll,getRemovedApplysEachUser,getAcceptedApplysEachCompany,getApplysForEachUser,getApplysForEachCompany,getApplysForEachCompanyOnlyTestLevel,getPdf } = require("../Controller/applyController.js");
+const { getApplys,postApply,companyAcceptUserApply, getAcceptedApplys,companyDeleteApply,getUserRemovedApplysAll,getRemovedApplysEachUser,getAcceptedApplysEachCompany,getApplysForEachUser,getApplysForEachCompany,getApplysForEachCompanyOnlyTestLevel,getPdf,getApplywithId } = require("../Controller/applyController.js");
 const auth = require("../Middleware/auth.js");
 const {upload} = require('../Utils/FileUpload/fileUpload.js');
 const express = require('express');
@@ -12,9 +12,10 @@ router.put('/api/companyDeleteApply/:id',companyDeleteApply);//Sirket muracieti 
 router.get('/api/getUserRemovedApplysAll',getUserRemovedApplysAll);//Umumi userlerin beyenilmeyen muracietleri
 router.get('/api/getRemovedApplysEachUser/:id',getRemovedApplysEachUser);//Userin beyenilmeyen muracietleri
 router.get('/api/getAcceptedApplysEachCompany/:id',getAcceptedApplysEachCompany);//Her bir sirketin beyendiyi qebul etdiyi muracietler
-router.get('/api/getApplysForEachCompanyOnlyTestLevel/:company_id',getApplysForEachCompanyOnlyTestLevel)
+router.get('/api/getApplysForEachCompanyOnlyTestLevel',auth,getApplysForEachCompanyOnlyTestLevel)
 router.get('/api/getApplysForEachUser',auth,getApplysForEachUser)//Userin muraciet etdiyi is ler
 router.get('/api/getApplysForEachCompany/:id',getApplysForEachCompany);//Sirketin qoyduqu ise gelen muracietler
 router.get('/api/getPdf',getPdf)
+router.get('/api/apply/:applyId',auth,getApplywithId)
 
 module.exports =  router

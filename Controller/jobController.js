@@ -833,8 +833,9 @@ const deleteJob = async (req, res,next) => {
 };
 const deactivate = async (req,res,next) => {
   const {jobId} = req.params;
+  const {user_id:companyId} = req.user;
   try {
-    const job = await Jobs.findById(jobId);
+    const job = await Jobs.findOne({_id:jobId,company:companyId});
     if(!job) throw {status:404,message:'Job'+errorConstants.userErrors.doesntExsist};
     const {active,endTime} = job;
     const expiredTime = new Date().getTime()-endTime.getTime();
@@ -842,7 +843,6 @@ const deactivate = async (req,res,next) => {
     job.active = !active;
     await job.save();
     return res.status(200).json({success:true,message:`Vacancy ${active ? 'unactivated' : 'activated'} succesfully!`,data:job});
-
   } catch (error) {
     next(error);
   }
