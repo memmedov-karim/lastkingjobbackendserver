@@ -23,12 +23,9 @@ const {errorConstants} = require('../Utils/Constants/errorConstants.js');
 
 
 const getFolders = async (req,res,next) => {
+    const {user_id:companyId} = req.user;
     try {
-        const fodlers = await Folders.find({})
-        .populate({
-            path:'company',
-            select:'name'
-        })
+        const fodlers = await Folders.find({company:companyId})
         return res.status(200).json({success:true,message:'Folders'+successConstants.fetchingSuccess.fetchedSuccesfully,data:fodlers});
         
     } catch (error) {
@@ -37,21 +34,19 @@ const getFolders = async (req,res,next) => {
 }
 
 const creatFolder = async (req,res,next) => {
-    const {company,name,description} = req.body;
+    const {name,descriptionOfTask} = req.body;
+    const {user_id:company} = req.user
     try {
-        await validateRequiredFields(req,res,'company','name','description');
-        // console.log(company);
-        // console.log(mongoose.Types.ObjectId(company))
-        // const companys = await Companies.findById(mongoose.Types.ObjectId(company));
-        // // console.log(companys)
-        // if(!companys) return res.status(200).json({succes:false,message:'There is not company with the given Id!'});
+        await validateRequiredFields(req,res,'name','descriptionOfTask');
+        const companys = await Companies.findById(mongoose.Types.ObjectId(company));
+        if(!companys) throw {status:404,message:'Company not found'};
         const exsistingFolder = await Folders.findOne({company:mongoose.Types.ObjectId(company),name:name.toLowerCase()});
         if(exsistingFolder) throw {status:400,message:`You created folder called ${name},please use another name`};
         const newFolder = new Folders({
-            company,name:name.toLowerCase(),description,questions:[]
+            company,name:name.toLowerCase(),description:descriptionOfTask,questions:[]
         });
-        await newFolder.save();
-        return res.status(200).json({success:true,message:`${name.toLowerCase()} folder`+successConstants.updatingSuccess.addedSuccesfully});
+        const saved = await newFolder.save();
+        return res.status(200).json({success:true,message:`${name.toLowerCase()} folder`+successConstants.updatingSuccess.addedSuccesfully,data:saved});
     } catch (error) {
         next(error);
     }
@@ -61,13 +56,16 @@ const creatTask = async (req,res,next) => {
     const {folder,question,options,point} = req.body;
     try {
         console.log(0)
-        await validateRequiredFields(req,res,'folder','question','point');
+        await validateRequiredFields(req,res,'folder','question');
         if(options.length === 0) throw {status:400,message:'Please select minimum 2 options'};
         console.log(1)
         const exsistingFolder = await Folders.findById(mongoose.Types.ObjectId(folder));
         console.log(2)
         if(!exsistingFolder) throw {status:404,message:'Folder'+errorConstants.userErrors.doesntExsist};
         console.log(3)
+        // if(exsistingFolder.question.trim()===question.trim()) throw
+        const havequestion = exsistingFolder.questions.some(q=>q.question.toLowerCase()===question.toLowerCase().trim());
+        if(havequestion) throw {status:400,message:'This question already exsist'}
         const filteredAnswers =  options.filter(answer=>answer.isCorrect);
         console.log(4)
         if(filteredAnswers.length >1) throw {status:400,message:'You can select only 1 correct variant'}
@@ -81,7 +79,7 @@ const creatTask = async (req,res,next) => {
         // });
         await exsistingFolder.save();
         console.log(8)
-        return res.status(200).json({success:true,message:`Task added to ${exsistingFolder.name} succesfully!`,data:exsistingFolder.questions}); 
+        return res.status(200).json({success:true,message:`Task added to ${exsistingFolder.name} succesfully!`,data:exsistingFolder}); 
     } catch (error) {
         next(error);
     }

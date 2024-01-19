@@ -1,13 +1,13 @@
 const express = require('express');
 const {getFolders,creatFolder,creatTask,getFolderQuestionsForApplicant,checkApplicantTask,companySendTasksFolderToApplicant} = require('../Controller/taskConroller.js');
-
+const auth = require('../Middleware/auth.js');
 const router = express.Router();
 
 
 
-router.get('/api/folders',getFolders);
+router.get('/api/folders',auth,getFolders);
 
-router.post('/api/creatfolder',creatFolder);
+router.post('/api/creatfolder',auth,creatFolder);
 
 router.post('/api/creattask',creatTask);
 

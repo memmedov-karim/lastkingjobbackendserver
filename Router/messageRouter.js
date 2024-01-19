@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {
     userMessagers,
+    companyMessagers,
     userSendMessage,
     companySendMessage,
     getChatMessages
@@ -9,9 +10,10 @@ const {
 const auth = require('../Middleware/auth.js');
 //<-------------------------------------GET REQUEST--------------------------------------->\\
 router.get('/api/usermessagers',auth,userMessagers);
-router.get('/api/chatmessages/:chatId',getChatMessages);
+router.get('/api/companymessagers',auth,companyMessagers);
+router.get('/api/chatmessages/:chatId',auth,getChatMessages);
 //<---------------------------------------POST REQUEST------------------------------------>\\
 
-router.post('/api/usersendmessage/:chatId',userSendMessage);
-router.post('/api/companysendmessage/:chatId',companySendMessage);
+router.post('/api/usersendmessage/:chatId',auth,userSendMessage);
+router.post('/api/companysendmessage/:chatId',auth,companySendMessage);
 module.exports = router;
