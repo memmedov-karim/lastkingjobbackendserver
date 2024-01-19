@@ -64,7 +64,48 @@ const userMessagers = async (req,res,next) => {
         next(error);
     }
 }
-
+const companyMessagers = async (req,res,next) => {
+    const {user_id:companyId} = req.user;
+    try {
+        const user = await Companies.findById(companyId);
+        if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist};
+        const messager = await Chats.
+        aggregate([
+            {$match:{company:new mongoose.Types.ObjectId(companyId)}},
+            {
+                $lookup:{
+                    from:'users',
+                    localField:'user',
+                    foreignField:'_id',
+                    as:'userInfo'
+                }
+            },
+            {$unwind:'$userInfo'},
+            {
+                $lookup:{
+                    from:'userinfos',
+                    localField:'userInfo.userinfo',
+                    foreignField:'_id',
+                    as:'userInfoInfo'
+                }
+            },
+            {$unwind:'$userInfoInfo'},
+            {
+                $project:{
+                    chatId:'$_id',
+                    userName:'$userInfo.name',
+                    userLogo:'$userInfoInfo.profilepic',
+                    userJobTitle:'$userInfoInfo.jobTitle',
+                    userId:'$userInfo._id',
+                    createdAt:1
+                }
+            }
+        ])
+        return res.status(200).json({success:true,message:'Fetched',data:messager}); 
+    } catch (error) {
+        next(error);
+    }
+}
 const getMessagesBetwenOneUserAndOneCompany = async (req,res,next) => {
     const {chatId} = req.params;
     try {
@@ -75,16 +116,18 @@ const getMessagesBetwenOneUserAndOneCompany = async (req,res,next) => {
 }
 const userSendMessage = async (req,res,next) => {
     const {chatId} = req.params
-    const {userId,content} = req.body;
+    console.log(chatId)
+    const {content} = req.body;
+    const {user_id:sender} = req.user;
     try {
-        const user  = await Users.findById(userId);
-        if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist};
+        // const user  = await Users.findById(userId);
+        // if(!user) throw {status:404,message:errorConstants.userErrors.userdoesntExsist};
         const chat = await Chats.findById(chatId);
         if(!chat) throw {status:404,message:'Chat'+errorConstants.userErrors.doesntExsist};
         await validateRequiredFields(req,res,'content');
         const newMessage = new Messages({
             chat:chatId,
-            sender:userId,
+            sender,
             text:content
         });
         const savedMessage = await newMessage.save();
@@ -101,7 +144,7 @@ const companySendMessage = async (req,res,next) => {
         if(!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist}
         const chat = await Chats.findById(chatId);
         if(!chat) throw {status:404,message:'Chat'+errorConstants.userErrors.doesntExsist};
-        if(chat.company !== companyId) throw {status:401,message:'You can not send message in this chat'}
+        if(chat.company.toString() !== companyId.toString()) throw {status:401,message:'You can not send message in this chat'}
         await validateRequiredFields(req,res,'content');
         const newMessage = new Messages({
             chat:chatId,
@@ -116,14 +159,20 @@ const companySendMessage = async (req,res,next) => {
 }
 const getChatMessages = async (req,res) => {
     const {chatId} = req.params;
+    const {user_id} = req.user;
     try {
         const chat = await Chats.findById(chatId);
         if(!chat) throw {status:404,message:'Chat'+errorConstants.userErrors.doesntExsist};
-
+        const {user,company} = chat;
+        let enduserinfo;
+        if(user_id.toString() === user.toString()){
+            enduserinfo = await UserInfo.findOne({user:user_id}); 
+        }
+        if(user_id.toString() === company.toString()){
+            enduserinfo = await CompanyInfo.findOne({company:user_id});
+        }
         const messages = await Messages.find({chat:chatId});
-
-
-        return res.status(200).json({success:true,message:'Messages'+successConstants.fetchingSuccess.fetchedSuccesfully,data:messages});
+        return res.status(200).json({success:true,message:'Messages'+successConstants.fetchingSuccess.fetchedSuccesfully,data:{messages,myprofilelogo:enduserinfo?.logo || enduserinfo?.profilepic}});
         
     } catch (error) {
         next(error);
@@ -131,6 +180,7 @@ const getChatMessages = async (req,res) => {
 }
 module.exports = {
     userMessagers,
+    companyMessagers,
     getMessagesBetwenOneUserAndOneCompany,
     userSendMessage,
     companySendMessage,
