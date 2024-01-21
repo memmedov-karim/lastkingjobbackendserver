@@ -1,5 +1,5 @@
 function generateHtml(username,time,id) {
-    const blockLink = `https://seal-app-5gg2a.ondigitalocean.app/api/blockCompanyAccount/${id}`
+    const blockLink = `http://localhost:5000/api/blockCompanyAccount/${id}`
   return (`
   <!DOCTYPE html>
 <html lang="en">
