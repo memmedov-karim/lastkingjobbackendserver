@@ -177,13 +177,13 @@ const searchJobsTest = async (req, res,next) => {
           agreedSalary:1,
           salaryType:1,
           companyName: '$companyInfo.name',
-          companyId: '$companyInfo.companyInfo',
+          companyId: '$companyInfo._id',
           logo: '$companyInfoData.logo',
         },
       },
     ]);
     
-    console.log(jobs)
+    // console.log(jobs)
     return res.status(200).json({ success: true, data:jobs });
   } catch (error) {
     next(error);

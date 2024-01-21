@@ -17,7 +17,7 @@ const { validateRequiredFields } = require('../Utils/ValidateId/bodyValidator.js
 
 
 //SOCKETS
-const { getSocketInstance } = require('../socket.js');
+const { getSocketInstance,getConnectedUsers } = require('../socket.js');
 
 //CONSTANTS
 const {errorConstants} = require('../Utils/Constants/errorConstants.js');
@@ -52,6 +52,7 @@ const userMessagers = async (req,res,next) => {
             {$unwind:'$companyInfoInfo'},
             {
                 $project:{
+                    chatId:'$_id',
                     companyName:'$companyInfo.name',
                     companyLogo:'$companyInfoInfo.logo',
                     companyId:'$companyInfo._id',
@@ -131,6 +132,19 @@ const userSendMessage = async (req,res,next) => {
             text:content
         });
         const savedMessage = await newMessage.save();
+        const io = getSocketInstance();
+        // console.log(io.sockets.adapter.rooms)
+        const onlineUsers = getConnectedUsers();
+        // console.log(onlineUsers);
+        const receiverId = sender.toString() === chat.company.toString() ? chat.user.toString() : chat.company.toString();
+        const lastOnlineUsers = Object.keys(onlineUsers).filter(userId=>userId!==sender.toString());
+        console.log(lastOnlineUsers);
+        const receiverIsOnline = lastOnlineUsers.includes(receiverId);
+        console.log(receiverIsOnline)
+        // console.log(receiverId)
+        if(io){
+            io.to(receiverId).emit('message',savedMessage);
+        }
         return res.status(200).json({success:false,message:'Message sent succesfully!',data:savedMessage});
     } catch (error) {
         next(error);
@@ -157,7 +171,7 @@ const companySendMessage = async (req,res,next) => {
         next(error);
     }
 }
-const getChatMessages = async (req,res) => {
+const getChatMessages = async (req,res,next) => {
     const {chatId} = req.params;
     const {user_id} = req.user;
     try {
@@ -172,7 +186,20 @@ const getChatMessages = async (req,res) => {
             enduserinfo = await CompanyInfo.findOne({company:user_id});
         }
         const messages = await Messages.find({chat:chatId});
-        return res.status(200).json({success:true,message:'Messages'+successConstants.fetchingSuccess.fetchedSuccesfully,data:{messages,myprofilelogo:enduserinfo?.logo || enduserinfo?.profilepic}});
+        const io = getSocketInstance();
+        // console.log(io.sockets.adapter.rooms)
+        const onlineUsers = getConnectedUsers();
+        // console.log(onlineUsers);
+        const receiverId = user_id.toString() === chat.company.toString() ? chat.user.toString() : chat.company.toString();
+        const lastOnlineUsers = Object.keys(onlineUsers).filter(userId=>userId!==user_id.toString());
+        console.log(lastOnlineUsers);
+        const receiverIsOnline = lastOnlineUsers.includes(receiverId);
+        console.log(receiverIsOnline)
+        // console.log(receiverId)
+        // if(io){
+        //     io.to(receiverId).emit('message',savedMessage);
+        // }
+        return res.status(200).json({success:true,message:'Messages'+successConstants.fetchingSuccess.fetchedSuccesfully,data:{messages,myprofilelogo:enduserinfo?.logo || enduserinfo?.profilepic,receiverIsOnline}});
         
     } catch (error) {
         next(error);

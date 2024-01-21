@@ -3,11 +3,11 @@
 const socketIo = require('socket.io');
 
 let io;
-
+const connectedUsers = {};
 function initializeSocket(server) {
   io = socketIo(server, {
     cors: {
-      origin: ['https://kingjob.vercel.app','http://localhost:3000','https://kingjob.pro'], // Update with your frontend's URL or a more specific configuration
+      origin: ['https://kingjob.vercel.app','http://localhost:3000','https://kingjob.pro','https://king-job.vercel.app'],
       methods: ['GET', 'POST'],
     },
   });
@@ -17,9 +17,19 @@ function initializeSocket(server) {
 
     socket.on('joinRoom',userId=>{
       socket.join(userId);
-      console.log(userId+' joined room')
-    })
-    
+      connectedUsers[userId] = socket.id;
+      console.log(userId+' joined room');
+      io.emit('onlineUsers', Object.keys(connectedUsers));
+    });
+
+    socket.on('disconnect', () => {
+      const disconnectedUser = Object.keys(connectedUsers).find((key) => connectedUsers[key] === socket.id);
+      if (disconnectedUser) {
+        delete connectedUsers[disconnectedUser];
+        // io.emit('onlineUsers', Object.keys(connectedUsers));
+      }
+      console.log(`User disconnected ${socket.id}`);
+    });
   })
 }
 
@@ -27,5 +37,7 @@ function initializeSocket(server) {
 function getSocketInstance() {
   return io;
 }
-
-module.exports = { initializeSocket, getSocketInstance };
+function getConnectedUsers() {
+  return connectedUsers;
+}
+module.exports = { initializeSocket, getSocketInstance,getConnectedUsers };

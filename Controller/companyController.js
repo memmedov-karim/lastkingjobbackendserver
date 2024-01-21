@@ -278,8 +278,9 @@ const blockCompanyAccount = async (req, res,next) => {
       );
       if (!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist};
       const io = getSocketInstance();
-        // console.log(io.sockets.adapter.rooms)
-        // console.log(company_id)
+        console.log(io.sockets.adapter.rooms)
+        console.log("from socket")
+        console.log(company_id)
         // console.log(io)
         if(io){
             io.to(company_id).emit('company-block',"companyblocked");
@@ -563,6 +564,39 @@ const getMontlhyVakansyData = async (req,res,next) => {
       next(error);
     }
 }
+
+
+
+const getcompanydetail = async(req,res,next) => {
+  const {id:companyId} = req.params
+  console.log("fromcompany",companyId)
+  try {
+
+    const data = await Companies.aggregate([
+      {$match:{_id:new mongoose.Types.ObjectId(companyId)}},
+      {
+        $lookup:{
+          from:'companyinfos',
+          localField:'companyInfo',
+          foreignField:'_id',
+          as:'companyInfoInfo'
+        }
+      },
+      {$unwind:'$companyInfoInfo'},
+      {
+        $project:{
+          name:1,
+          email:1,
+          companyInfo:'$companyInfoInfo'
+        }
+      }
+    ])
+    // console.log(data)
+    return res.status(200).json({success:true,message:'Fetched',data:data[0] || null})
+  }catch (error){
+    next(error)
+  }
+}
 module.exports = {
   companyIsBlock,
   getCompanies,
@@ -578,5 +612,6 @@ module.exports = {
   changeCompanyForgottenPassword,
   getCompaniesInfo,
   getNumbersForCompanyMenu,
-  getMontlhyVakansyData
+  getMontlhyVakansyData,
+  getcompanydetail
 };

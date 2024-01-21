@@ -308,7 +308,7 @@ const getApplysForEachCompanyOnlyTestLevel = async (req,res,next) => {
 
         ])
 
-        console.log(companyapplyes)
+        // console.log(companyapplyes)
 
         return res.status(200).json({success:true,message:'fetched',data:companyapplyes})
     } catch (error) {
