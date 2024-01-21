@@ -7,7 +7,7 @@ const connectedUsers = {};
 function initializeSocket(server) {
   io = socketIo(server, {
     cors: {
-      origin: ['https://kingjob.vercel.app','http://localhost:3000','https://kingjob.pro','https://king-job.vercel.app'],
+      origin: ['https://www.kingjob.pro'],
       methods: ['GET', 'POST'],
     },
   });
