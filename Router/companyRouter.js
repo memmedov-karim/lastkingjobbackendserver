@@ -41,7 +41,7 @@ router.get('/api/blockCompanyAccount/:id',blockCompanyAccount);//Sirketin mailin
 router.post('/api/changeCompanyAccountPassword',changeCompanyAccountPassword);//Maile gelen otp kodu duzgun daxil etse hesabin parolunu deyise bilir ve eyer hesabi blokdadisa avtamatik olaraq blokdan cixir
 router.get('/api/companyIsBlock/:email',companyIsBlock);// Company acoountun blok olub amamaqin yoxlamaq
 router.get('/api/getNumbersForCompanyMenu/:company_id',getNumbersForCompanyMenu);
-router.get('/api/getMontlhyVakansyData/:company_id',getMontlhyVakansyData);
+router.get('/api/getMontlhyVakansyData',auth,getMontlhyVakansyData);
 // router.post('/api/verifyCompanyOtp',verifyOtp);
 router.post('/api/changecompanyforgottenpassword',changeCompanyForgottenPassword);
 router.get('/api/company/:id',getcompanydetail)

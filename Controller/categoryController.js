@@ -2,7 +2,38 @@ const {Categories} = require('../Model/categoryModel.js');
 
 const getCategories = async (req,res,next) => {
     try {
-        const data = await Categories.find({});
+        const data = await Categories.aggregate([
+            {
+              $lookup: {
+                from: 'jobs',
+                localField: '_id',
+                foreignField: 'category',
+                as: 'jobs',
+              },
+            },
+            {
+              $addFields: {
+                numofactivevacancywithiscategory: {
+                  $size: {
+                    $filter: {
+                      input: '$jobs',
+                      as: 'job',
+                      cond: { $eq: ['$$job.active', true] },
+                    },
+                  },
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                skills:1,
+                icon:1,
+                numofactivevacancywithiscategory: 1,
+              },
+            },
+          ]);
 
         return res.status(200).json({success:true,message:'Category fetched succesfully',data})
     } catch (error) {
