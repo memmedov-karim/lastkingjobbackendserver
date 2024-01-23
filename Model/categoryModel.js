@@ -1,13 +1,12 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
-
 const categorySchema = new Schema({
     name:{
         type:String,
         required:true
     },
     skills:[
-        {type:String}
+        {value:{type:String,required:true},label:{type:String,required:true}}
     ]
 })
 

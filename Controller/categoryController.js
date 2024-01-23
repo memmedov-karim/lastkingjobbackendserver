@@ -38,10 +38,20 @@ const updateCategory = async (req, res, next) => {
             if (existingCategoryWithName) throw { status: 400, message: 'Category with the given name already exists' }
             
         }
-        const uniqueSkills = [...new Set(skills || existingCategory.skills)].map(sk=>sk.toUpperCase());
+        if (skills && Array.isArray(skills)) {
+            const uniqueSkills = skills.reduce((unique, skill) => {
+                // console.log(skill)
+                const normalizedSkill = { value: skill?.value?.toUpperCase(), label: skill?.label?.toUpperCase() };
+                if (!unique.find(existing => existing.value === normalizedSkill.value && existing.label === normalizedSkill.label)) {
+                    unique.push(normalizedSkill);
+                }
+                return unique;
+            }, []);
+
+            existingCategory.skills = uniqueSkills;
+        }
         // Update the category
-        existingCategory.name = name.toUpperCase() || existingCategory.name;
-        existingCategory.skills = uniqueSkills;
+        existingCategory.name = name?.toUpperCase() || existingCategory.name;
         await existingCategory.save();
 
         return res.status(200).json({ success: true, message: 'Category updated successfully', data: existingCategory });

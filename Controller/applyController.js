@@ -196,19 +196,36 @@ const getApplysForEachUser = async (req,res,next) => {
             },
             {$unwind:'$companyInfoInfo'},
             {
-                $lookup:{
-                    from:'applystatuses',
-                    localField:'status',
-                    foreignField:'_id',
-                    as:'statusInfo'
+                $lookup: {
+                    from: 'applystatuses',
+                    let: { statusIds: '$status' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $in: ['$_id', '$$statusIds']
+                                }
+                            }
+                        },
+                        {
+                            $addFields: {
+                                order: {
+                                    $indexOfArray: ['$$statusIds', '$_id']
+                                }
+                            }
+                        },
+                        {
+                            $sort: { order: 1 }
+                        }
+                    ],
+                    as: 'statusInfo'
                 }
             },
-            {$unwind:'$statusInfo'},
             {
                 $project:{
                     createdAt:1,
                     file:1,
-                    status:{name:'$statusInfo.name',color:'$statusInfo.color',_id:'$statusInfo._id'},
+                    status:'$statusInfo',
                     taskInfo:1,
                     companyName:'$companyInfo.name',
                     companyLogo:'$companyInfoInfo.logo',
@@ -221,100 +238,78 @@ const getApplysForEachUser = async (req,res,next) => {
                 }
             }
         ])
-        // .populate({
-        //     path:'user',
-        //     select:'name email phoneNumber'
-        // })
-        // .populate({
-        //     path:'job',
-        //     select:'category name',
-        //     populate:{
-        //         path:'company',
-        //         select:'name email',
-        //         populate:{
-        //             path:'companyInfo',
-        //             select:'logo'
-        //         }
-        //     }
-        // })
         return res.status(200).json({success:true,message:"User applys"+successConstants.fetchingSuccess.fetchedSuccesfully,data:applys})
     } catch (error) {
         next(error);
     }
 }
-const getApplysForEachCompanyOnlyTestLevel = async (req,res,next) => {
-    const {user_id:company_id} = req.user;
+const getApplysForEachCompanyOnlyTestLevel = async (req, res, next) => {
+    const { user_id: company_id } = req.user;
+
     try {
         const companyapplyes = await Applys.aggregate([
             {
-                $lookup:{
-                    from:'jobs',
-                    localField:'job',
-                    foreignField:'_id',
-                    as:'jobInfo'
+                $lookup: {
+                    from: 'jobs',
+                    localField: 'job',
+                    foreignField: '_id',
+                    as: 'jobInfo'
                 }
             },
-            {$unwind:'$jobInfo'},
-            {$match:{'jobInfo.company':mongoose.Types.ObjectId(company_id)}},
+            { $unwind: '$jobInfo' },
+            { $match: { 'jobInfo.company': mongoose.Types.ObjectId(company_id) } },
             {
-                $lookup:{
-                    from:'users',
-                    localField:'user',
-                    foreignField:'_id',
-                    as:'userInfo'
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userInfo'
                 }
             },
-            {$unwind:'$userInfo'},
+            { $unwind: '$userInfo' },
             {
-                $lookup:{
-                    from:'userinfos',
-                    localField:'userInfo.userinfo',
-                    foreignField:'_id',
-                    as:'userInfoInfo'
+                $lookup: {
+                    from: 'userinfos',
+                    localField: 'userInfo.userinfo',
+                    foreignField: '_id',
+                    as: 'userInfoInfo'
                 }
             },
-            {$unwind:'$userInfoInfo'},
+            { $unwind: '$userInfoInfo' },
             {
-                $lookup:{
-                    from:'applystatuses',
-                    localField:'status',
-                    foreignField:'_id',
-                    as:'statusInfo'
+                $lookup: {
+                    from: 'applystatuses',
+                    let: { statusIds: '$status' },
+                    pipeline: [
+                        { $match: { $expr: { $in: ['$_id', '$$statusIds'] } } },
+                        { $addFields: { order: { $indexOfArray: ['$$statusIds', '$_id'] } } },
+                        { $sort: { order: 1 } }
+                    ],
+                    as: 'statusInfo'
                 }
             },
-            {$unwind:'$statusInfo'},
             {
-                $project:{
-                    job:1,
-                    file:1,
-                    percentageOfCv:1,
-                    profilepic:'$userInfoInfo.profilepic',
-                    status:{name:'$statusInfo.name',color:'$statusInfo.color',_id:'$statusInfo._id',icon:'$statusInfo.icon'},
-                    jobName:'$jobInfo.name',
-                    userName:'$userInfo.name',
-                    skills:'$userInfoInfo.skills',
-                    jobTitle:'$userInfoInfo.jobTitle',
-                    userCity:'$userInfoInfo.city'
-
+                $project: {
+                    job: 1,
+                    file: 1,
+                    percentageOfCv: 1,
+                    profilepic: '$userInfoInfo.profilepic',
+                    status: '$statusInfo',
+                    jobName: '$jobInfo.name',
+                    userName: '$userInfo.name',
+                    skills: '$userInfoInfo.skills',
+                    jobTitle: '$userInfoInfo.jobTitle',
+                    userCity: '$userInfoInfo.city'
                 }
             },
-            // {
-            //     $group: {
-            //         _id: '$job', // Group by the job ID
-            //         jobName:{ $first: '$jobName' },
-            //         applies: { $push: '$$ROOT' } // Collect all applies for the same job
-            //     }
-            // }
+        ]);
 
-        ])
-
-        // console.log(companyapplyes)
-
-        return res.status(200).json({success:true,message:'fetched',data:companyapplyes})
+        return res.status(200).json({ success: true, message: 'fetched', data: companyapplyes });
     } catch (error) {
         next(error);
     }
-}
+};
+
 //3-Her bir sirkete gelen is muracietleri
 const getApplysForEachCompany = async (req,res,next) => {
     const company_id = req.params.id
@@ -721,14 +716,17 @@ const getApplywithId = async (req,res,next) => {
             },
             {$unwind:'$userInfoInfo'},
             {
-                $lookup:{
-                    from:'applystatuses',
-                    localField:'status',
-                    foreignField:'_id',
-                    as:'statusInfo'
+                $lookup: {
+                    from: 'applystatuses',
+                    let: { statusIds: '$status' },
+                    pipeline: [
+                        { $match: { $expr: { $in: ['$_id', '$$statusIds'] } } },
+                        { $addFields: { order: { $indexOfArray: ['$$statusIds', '$_id'] } } },
+                        { $sort: { order: 1 } }
+                    ],
+                    as: 'statusInfo'
                 }
             },
-            {$unwind:'$statusInfo'},
             {
                 $lookup:{
                     from:'jobs',
