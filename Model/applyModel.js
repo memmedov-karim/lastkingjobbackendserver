@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
-
 const apply = new Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
@@ -11,29 +10,24 @@ const apply = new Schema({
     job:{
         type:mongoose.Schema.Types.ObjectId,
         ref:'job',
-        require:true
+        required:true
     },
     file:{
         type:String,
-        require:true,
-    },
-    status:{
-        type:Schema.Types.ObjectId,
         required:true,
-        default:mongoose.Types.ObjectId('65a6e9f5788f1a9ccd9f0e21'),
-        ref:'applystatuses'
     },
+    status:[{type:Schema.Types.ObjectId,ref:'applystatuses',default:mongoose.Types.ObjectId('65a6e9f5788f1a9ccd9f0e21')}],
     percentageOfCv:{
         type:Number,
     },
     show:{
         type:Boolean,
-        require:true,
+        required:true,
         default:true
     },
     isDate:{
         type:Boolean,
-        require:true,
+        required:true,
         default:false
     },
     dateTime:{
@@ -42,7 +36,7 @@ const apply = new Schema({
     },
     isFinish:{
         type:Boolean,
-        require:true,
+        required:true,
         default:false
     },
     taskInfo:{
