@@ -7,7 +7,7 @@ const connectedUsers = {};
 function initializeSocket(server) {
   io = socketIo(server, {
     cors: {
-      origin: ['http://localhost:3000','https://kingjob.pro'],
+      origin: ['https://www.kingjob.pro'],
       methods: ['GET', 'POST'],
     },
   });
