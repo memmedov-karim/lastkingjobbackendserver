@@ -510,7 +510,7 @@ function calculatePercentageChange(previousValue, currentValue) {
   }
 
 const getMontlhyVakansyData = async (req,res,next) => {
-  const { company_id } = req.params;
+  const { user_id:company_id } = req.user;
     try {
       const company = await Companies.findById(company_id);
       if (!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist}
@@ -553,11 +553,7 @@ const getMontlhyVakansyData = async (req,res,next) => {
         success: true,
         message: 'Data'+successConstants.fetchingSuccess.fetchedSuccesfully,
         values: {
-          monthlyData:monthsData.reverse(),  
-          dataDiagram:[
-          {name:'Adi',value:adi},
-          {name:'Premium',value:premiumNum}
-        ]    
+          monthlyData:monthsData.reverse(),    
         }
       });
     } catch (error) {

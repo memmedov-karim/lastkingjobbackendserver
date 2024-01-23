@@ -1,4 +1,4 @@
-const { getApplys,postApply,companyAcceptUserApply, getAcceptedApplys,companyDeleteApply,getUserRemovedApplysAll,getRemovedApplysEachUser,getAcceptedApplysEachCompany,getApplysForEachUser,getApplysForEachCompany,getApplysForEachCompanyOnlyTestLevel,getPdf,getApplywithId } = require("../Controller/applyController.js");
+const { getApplys,postApply,companyAcceptUserApply, getAcceptedApplys,companyDeleteApply,getUserRemovedApplysAll,getRemovedApplysEachUser,getAcceptedApplysEachCompany,getApplysForEachUser,getApplysForEachCompany,getApplysForEachCompanyOnlyTestLevel,getPdf,getApplywithId,getapplysnumininterval } = require("../Controller/applyController.js");
 const auth = require("../Middleware/auth.js");
 const {upload} = require('../Utils/FileUpload/fileUpload.js');
 const express = require('express');
@@ -15,6 +15,7 @@ router.get('/api/getAcceptedApplysEachCompany/:id',getAcceptedApplysEachCompany)
 router.get('/api/getApplysForEachCompanyOnlyTestLevel',auth,getApplysForEachCompanyOnlyTestLevel)
 router.get('/api/getApplysForEachUser',auth,getApplysForEachUser)//Userin muraciet etdiyi is ler
 router.get('/api/getApplysForEachCompany/:id',getApplysForEachCompany);//Sirketin qoyduqu ise gelen muracietler
+router.get('/api/applysintervalnums',auth,getapplysnumininterval);
 router.get('/api/getPdf',getPdf)
 router.get('/api/apply/:applyId',auth,getApplywithId)
 

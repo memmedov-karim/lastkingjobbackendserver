@@ -293,6 +293,7 @@ const getApplysForEachCompanyOnlyTestLevel = async (req, res, next) => {
                     job: 1,
                     file: 1,
                     percentageOfCv: 1,
+                    createdAt:1,
                     profilepic: '$userInfoInfo.profilepic',
                     status: '$statusInfo',
                     jobName: '$jobInfo.name',
@@ -875,6 +876,67 @@ const getApplywithId = async (req,res,next) => {
 //      }
 //  })
 // console.log(emailQueue)
+
+
+const getapplysnumininterval = async (req,res,next) => {
+    const {user_id:companyId} = req.user;
+    try{
+    const applyData = await Applys.aggregate([
+        {
+            $lookup:{
+                from:'jobs',
+                localField:'job',
+                foreignField:'_id',
+                as:'jobInfo'
+            }
+        },
+        {$unwind:'$jobInfo'},
+        {$match:{'jobInfo.company':new mongoose.Types.ObjectId(companyId)}},
+        {
+            $project:{
+                percentageOfCv:1
+            }
+        }
+    ])
+    console.log(applyData)
+    const dataMap = {};
+    const intervals = [
+      { min: 0, max: 10 },
+      { min: 10, max: 20 },
+      { min: 20, max: 30 },
+      { min: 30, max: 40 },
+      { min: 40, max: 50 },
+      { min: 50, max: 60 },
+      { min: 60, max: 70 },
+      { min: 70, max: 80 },
+      { min: 80, max: 90 },
+      { min: 90, max: 100 },
+    ];
+    intervals.forEach(interval => {
+      dataMap[`${interval.min}-${interval.max}`] = 0;
+    });
+    applyData.forEach(application => {
+      intervals.forEach(interval => {
+        if (
+          application.percentageOfCv !== undefined &&
+          application.percentageOfCv >= interval.min &&
+          application.percentageOfCv < interval.max
+        ) {
+          dataMap[`${interval.min}-${interval.max}`]++;
+        }
+      });
+    });
+    const chartData = Object.keys(dataMap).map(interval => ({
+      persentageInterval: interval,
+      numberofapplyers: dataMap[interval],
+    }));
+
+    return res.status(200).json({success:true,message:'Fetched',data:chartData})
+
+    }catch(error){
+        next(error);
+    }
+}
 module.exports = {
     getApplys,
     getApplysForEachUser,
@@ -888,7 +950,8 @@ module.exports = {
     companyDeleteApply,
     getApplysForEachCompanyOnlyTestLevel,
     getPdf,
-    getApplywithId
+    getApplywithId,
+    getapplysnumininterval
 
     
 }
