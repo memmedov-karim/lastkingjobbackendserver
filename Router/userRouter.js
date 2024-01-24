@@ -17,7 +17,7 @@ const {
     userDeleteFile,
     userAddFile,
     // checkUserAndValidate,
-    getUserNotifications,
+    getUserNotificationsForUser,
     updateUserCarierInfo,
     deleteEducation,
     updateEducation,
@@ -43,7 +43,7 @@ const {upload} = require('../Utils/FileUpload/fileUpload.js')
 const {postProducts} = require('../Controller/customerControllers.js');
 const router = express.Router();
 router.get('/api/users',getUsers);//Umumi istifadecilerin olduqu api
-router.get('/api/getusernotifications/:id',getUserNotifications);
+router.get('/api/getusernotifications',auth,getUserNotificationsForUser);
 router.get('/api/user/:userId',getUserWithId);
 router.post('/api/registerUser',registerUser);//User qeydiyytdan kecmesi
 // router.post('/api/checkuserandvalidate',checkUserAndValidate);

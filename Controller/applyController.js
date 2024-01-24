@@ -42,7 +42,7 @@ const {successConstants} = require('../Utils/Constants/successConstants.js');
 
 
 //SOCKETS
-const {getSocketInstance} = require('../socket.js')
+const {getSocketInstance,getConnectedUsers} = require('../socket.js')
 
 
 
@@ -440,7 +440,8 @@ const postApply = async (req,res,next) => {
             user:user,
             job:job,
             file: lastFile,
-            percentageOfCv
+            percentageOfCv,
+            status:[mongoose.Types.ObjectId('65a6e9f5788f1a9ccd9f0e21')]
         })
         const savedApply = await newApply.save();
         // console.log(user,(jobs?.company)?._id.toString())
@@ -449,7 +450,8 @@ const postApply = async (req,res,next) => {
         if(!exsistedChat){
             const newChat = new Chats({
                 user:user,
-                company:jobs[0].companyId
+                company:jobs[0].companyId,
+                unreadMessages: {}
             })
             const newchat = await newChat.save();
         }
@@ -460,8 +462,30 @@ const postApply = async (req,res,next) => {
         if(checkcvHasnot){
             await UserInfo.findByIdAndUpdate(users.userinfo,{file:file.location})
         }
-        const updatedCompany = await CompanyInfo.findByIdAndUpdate(companyInfoId,{$inc:{applynum:1}},{new:true});
-        // console.log(updatedCompany)
+        ///888888888888888888888888
+        const notificationData = {user:user,type:"apply"}
+        const io = getSocketInstance();
+        // console.log(io.sockets.adapter.rooms)
+        const onlineUsers = getConnectedUsers();
+        // console.log(onlineUsers);
+        const receiverId = jobs[0].companyId.toString();
+        const lastOnlineUsers = Object.keys(onlineUsers)
+        const receiverIsOnline = lastOnlineUsers.includes(receiverId);
+        console.log(receiverIsOnline)
+        // console.log(receiverId)
+        if(io && receiverIsOnline){
+            io.to(receiverId).emit('notification',{userName:users?.name,type:"apply"});
+        }
+        //8888888888888888888888888
+        const updatedCompany = await CompanyInfo.findOneAndUpdate(
+            {company:receiverId},
+            {
+              $inc: { applynum: 1 },
+              $push: { notifications: notificationData }
+            },
+            { new: true }
+          );
+        console.log(updatedCompany)
         return res.status(200).json({success:true,message:`Your apply as a ${jobs[0].name} at ${jobs[0].companyName} sended successfully to ${jobs[0].companyName} ${checkcvHasnot ? 'We set this cv to your profile' : ''}`,data:{...jobs[0],numberOfApplys:updatedJob.numberOfApplys}});
 
     } catch (error) {
@@ -898,7 +922,7 @@ const getapplysnumininterval = async (req,res,next) => {
             }
         }
     ])
-    console.log(applyData)
+    // console.log(applyData)
     const dataMap = {};
     const intervals = [
       { min: 0, max: 10 },

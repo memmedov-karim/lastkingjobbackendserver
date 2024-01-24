@@ -11,7 +11,8 @@ const {Applystatuses} = require('../Model/applystatusModel.js');
 const {validateRequiredFields} = require('../Utils/ValidateId/bodyValidator.js');
 const {generateHtmlForStatusUpdateFeedback} = require('../Utils/GenerateHtmlForSendEmail/generateHtmlForStatusUpdateFeedback.js')
 const { sendMail } = require('../Utils/EmailSend/SendEmail.js');
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const {getSocketInstance,getConnectedUsers} = require('../socket.js')
 const getapplystatuses = async (req,res,next) => {
     try {
         const data = await Applystatuses.find({});
@@ -118,6 +119,21 @@ const companygiveanstatustoapplyer = async (req, res, next) => {
             },
         ]);
 
+        const usId = applyer?.user?._id;
+        const notificationData = {company:companyId,type:"status"}
+        await UserInfo.findOneAndUpdate({usId},{$push:{notifications:notificationData}});
+        const io = getSocketInstance();
+        // console.log(io.sockets.adapter.rooms)
+        const onlineUsers = getConnectedUsers();
+        // console.log(onlineUsers);
+        const receiverId = usId?.toString();
+        const lastOnlineUsers = Object.keys(onlineUsers)
+        const receiverIsOnline = lastOnlineUsers.includes(receiverId);
+        console.log(receiverIsOnline)
+        // console.log(receiverId)
+        if(io && receiverIsOnline){
+            io.to(receiverId).emit('notification',{companyName:company?.name,type:"status"});
+        }
         return res.status(200).json({ success: true, message: 'Status updated', data: updatedApplyer[0] });
     } catch (error) {
         next(error);

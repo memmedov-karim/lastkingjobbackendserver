@@ -1,5 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const notificationSchema = new Schema({
+    user:{
+        type:Schema.Types.ObjectId,
+        required:true,
+        ref:'Users'
+    },
+    type:{
+        type:String,
+        required:true,
+    }
+})
 const companyInfoSchema = new Schema({
     company:{
         type:Schema.Types.ObjectId,
@@ -41,6 +52,7 @@ const companyInfoSchema = new Schema({
         default:0
     },
     workers:[{type:String,ref:'Users'}],
+    notifications:[notificationSchema],
     subscription:{
         type:Schema.Types.ObjectId,
         ref:'subscription'

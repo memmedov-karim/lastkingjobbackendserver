@@ -742,130 +742,48 @@ const getAllUserSavedJob = async (req,res,next)=>{
 
 
 
-const getUserNotifications = async (req, res, next) => {
-  const { id: user_id } = req.params;
+const getUserNotificationsForUser = async (req, res, next) => {
+  const { user_id } = req.user;
 
   try {
-    const notifications = await Users.aggregate([
+    const notifications = await UserInfo.aggregate([
       {
-        $match: { _id: new mongoose.Types.ObjectId(user_id) }
+        $match: { user: new mongoose.Types.ObjectId(user_id) }
       },
       {
         $unwind: "$notifications"
       },
-      // {
-      //   $lookup: {
-      //     from: 'applyes',
-      //     localField: 'notifications.apply',
-      //     foreignField: '_id',
-      //     as: 'notifications.apply'
-      //   }
-      // },
-      // {
-      //   $unwind: '$notifications.apply'
-      // },
-      // {
-      //   $lookup: {
-      //     from: 'users',
-      //     localField: 'notifications.apply.user',
-      //     foreignField: '_id',
-      //     as: 'notifications.apply.user'
-      //   }
-      // },
-      // {
-      //   $unwind: '$notifications.apply.user'
-      // },
-      // {
-      //   $lookup: {
-      //     from: 'jobs',
-      //     localField: 'notifications.apply.job',
-      //     foreignField: '_id',
-      //     as: 'notifications.apply.job'
-      //   }
-      // },
-      // {
-      //   $unwind: '$notifications.apply.job'
-      // },
-      // {
-      //   $lookup: {
-      //     from: 'companies',
-      //     localField: 'notifications.apply.job.company',
-      //     foreignField: '_id',
-      //     as: 'notifications.apply.job.company'
-      //   }
-      // },
-      // {
-      //   $unwind: '$notifications.apply.job.company'
-      // },
-      // {
-      //   $lookup: {
-      //     from: 'companyinfos',
-      //     localField: 'notifications.apply.job.company.companyInfo',
-      //     foreignField: '_id',
-      //     as: 'notifications.apply.job.company.companyInfo'
-      //   }
-      // },
-      // {
-      //   $unwind: '$notifications.apply.job.company.companyInfo'
-      // },
-      // {
-      //   $group: {
-      //     _id: '$_id',
-      //     notifications: { $push: '$notifications' }
-      //   }
-      // },
-      // {
-      //   $project: {
-      //     _id: 1,
-      //     notifications: 1
-      //   }
-      // }
+      {
+        $lookup: {
+          from: 'companies',
+          localField: 'notifications.company',
+          foreignField: '_id',
+          as: 'company'
+        }
+      },
+      {
+        $unwind: '$company'
+      },
+      {
+        $project: {
+          _id: 0,
+          companyName: '$company.name',
+          type: '$notifications.type'
+        }
+      }
     ]);
 
-    if (!notifications || notifications.length === 0) {
-      throw { status: 404, message: errorConstants.userErrors.userdoesntExsist + ' ID' };
-    }
+    const reversedNotifications = notifications.reverse();
 
     return res.status(200).json({
       success: true,
       message: 'Notifications' + successConstants.fetchingSuccess.fetchedSuccesfully,
-      notifications: notifications[0].notifications
+      data:reversedNotifications
     });
   } catch (error) {
     next(error);
   }
 };
-
-const sendNotificationToUser = async (userid,applyid,types) => {
-  const notifysendeduser = await Users.findByIdAndUpdate(userid,{$push:{notifications:{apply:applyid,types:types}}},{new:true})
-  // .populate({
-  //   path:'notifications',
-  //   select:'types',
-  //   populate:{
-  //     path:'apply',
-  //     select:'status',
-  //     populate:[
-  //       {
-  //         path:'user',
-  //         select:'name'
-  //       },
-  //       {
-  //         path:'job',
-  //         select:'name category',
-  //         populate:{
-  //           path:'company',
-  //           select:'name',
-  //           populate:{
-  //             path:'companyInfo',
-  //             select:'logo'
-  //           }
-  //         }
-  //       }
-  //     ]
-  //   }
-  // });
-  return notifysendeduser?.notifications[(notifysendeduser?.notifications).length-1] || null;
-}
 //Fetching schools data
 
 const fetchSchools = async (req,res) => {
@@ -888,8 +806,7 @@ module.exports = {
   getAllUserSavedJob,
   userDeleteFile,
   userAddFile,
-  getUserNotifications,
-  sendNotificationToUser,
+  getUserNotificationsForUser,
   updateUserCarierInfo,
   deleteEducation,
   updateEducation,

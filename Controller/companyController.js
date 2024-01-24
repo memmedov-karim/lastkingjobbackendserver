@@ -593,6 +593,49 @@ const getcompanydetail = async(req,res,next) => {
     next(error)
   }
 }
+const getCompanyNotifications = async (req, res, next) => {
+  const { user_id } = req.user;
+  console.log(user_id)
+  try {
+    const d = await CompanyInfo.findOne({company:user_id})
+    console.log("cm",d)
+    const notifications = await CompanyInfo.aggregate([
+      {
+        $match: { company: mongoose.Types.ObjectId(user_id) }
+      },
+      {
+        $unwind: "$notifications"
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'notifications.user',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: '$user'
+      },
+      {
+        $project: {
+          _id: 0,
+          userName: '$user.name',
+          type: '$notifications.type'
+        }
+      }
+    ]);
+    console.log(notifications)
+    const reversedNotifications = notifications.reverse();
+    return res.status(200).json({
+      success: true,
+      message: 'Notifications' + successConstants.fetchingSuccess.fetchedSuccesfully,
+      data:reversedNotifications
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   companyIsBlock,
   getCompanies,
@@ -609,5 +652,6 @@ module.exports = {
   getCompaniesInfo,
   getNumbersForCompanyMenu,
   getMontlhyVakansyData,
-  getcompanydetail
+  getcompanydetail,
+  getCompanyNotifications
 };

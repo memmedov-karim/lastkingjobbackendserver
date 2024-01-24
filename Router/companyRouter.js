@@ -20,7 +20,8 @@ const {
     getCompaniesInfo,
     getNumbersForCompanyMenu,
     getMontlhyVakansyData,
-    getcompanydetail
+    getcompanydetail,
+    getCompanyNotifications
     // validatecompanysignupdetail
 } = require('../Controller/companyController.js');
 const auth = require('../Middleware/auth.js');
@@ -45,5 +46,6 @@ router.get('/api/getMontlhyVakansyData',auth,getMontlhyVakansyData);
 // router.post('/api/verifyCompanyOtp',verifyOtp);
 router.post('/api/changecompanyforgottenpassword',changeCompanyForgottenPassword);
 router.get('/api/company/:id',getcompanydetail)
+router.get('/api/companynotifications',auth,getCompanyNotifications)
 //,upload('logos',['png','jpg','jpeg'],"companyreg").single('file')
 module.exports =  router;

@@ -10,6 +10,10 @@ const chat = new Schema({
     company:{
         type:Schema.Types.ObjectId,
         ref:'company'
+    },
+    unreadMessages:{
+        user:{type:Number,default:0},
+        company:{type:Number,default:0}
     }
 },{timestamps:true});
 
