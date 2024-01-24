@@ -57,6 +57,17 @@ const talkingSchema = new Schema({
         type:String
     }
 },{timestamps:true});
+const notificationSchema = new Schema({
+    company:{
+        type:Schema.Types.ObjectId,
+        required:true,
+        ref:'company'
+    },
+    type:{
+        type:String,
+        required:true,
+    }
+})
 const userinfo = new Schema({
     user:{
         type:mongoose.Schema.Types.ObjectId,
@@ -126,7 +137,8 @@ const userinfo = new Schema({
     achievements:[achievementsSchema],
     links:[linksSchema],
     experiences:[experiencesSchema],
-    talks:[talkingSchema]
+    talks:[talkingSchema],
+    notifications:[notificationSchema]
 },{timestamps:true})
 const UserInfo = mongoose.model('UserInfo', userinfo);
 

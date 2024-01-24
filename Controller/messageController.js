@@ -56,7 +56,8 @@ const userMessagers = async (req,res,next) => {
                     companyName:'$companyInfo.name',
                     companyLogo:'$companyInfoInfo.logo',
                     companyId:'$companyInfo._id',
-                    createdAt:1
+                    createdAt:1,
+                    unreadMessages:1
                 }
             }
         ])
@@ -98,7 +99,8 @@ const companyMessagers = async (req,res,next) => {
                     userLogo:'$userInfoInfo.profilepic',
                     userJobTitle:'$userInfoInfo.jobTitle',
                     userId:'$userInfo._id',
-                    createdAt:1
+                    createdAt:1,
+                    unreadMessages:1
                 }
             }
         ])
@@ -141,6 +143,25 @@ const userSendMessage = async (req,res,next) => {
         console.log(lastOnlineUsers);
         const receiverIsOnline = lastOnlineUsers.includes(receiverId);
         console.log(receiverIsOnline)
+        if(receiverId === chat.user.toString()){
+            const companyone = await Companies.findById(sender);
+            const objsocket = {companyName:companyone?.name,type:"message"}
+            if(io && receiverIsOnline){
+                io.to(receiverId).emit('notification',objsocket);
+            }
+            await UserInfo.findOneAndUpdate({user:receiverId},{$push:{notifications:{company:sender,type:"message"}}})
+            await Chats.findByIdAndUpdate(chatId, { $inc: { 'unreadMessages.user': 1 } });
+            console.log("from user to company")
+        }else{
+            const userone = await Users.findById(sender);
+            const objsocket = {userName:userone?.name,type:"message"}
+            if(io && receiverIsOnline){
+                io.to(receiverId).emit('notification',objsocket);
+            }
+            await CompanyInfo.findOneAndUpdate({company:receiverId},{$push:{notifications:{user:sender,type:"message"}}})
+                await Chats.findByIdAndUpdate(chatId, { $inc: { 'unreadMessages.company': 1 } });
+        }
+        
         // console.log(receiverId)
         if(io){
             io.to(receiverId).emit('message',savedMessage);
@@ -150,27 +171,7 @@ const userSendMessage = async (req,res,next) => {
         next(error);
     }
 }
-const companySendMessage = async (req,res,next) => {
-    const {chatId} = req.params;
-    const {companyId,content} = req.body;
-    try {
-        const company = await Companies.findById(companyId);
-        if(!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist}
-        const chat = await Chats.findById(chatId);
-        if(!chat) throw {status:404,message:'Chat'+errorConstants.userErrors.doesntExsist};
-        if(chat.company.toString() !== companyId.toString()) throw {status:401,message:'You can not send message in this chat'}
-        await validateRequiredFields(req,res,'content');
-        const newMessage = new Messages({
-            chat:chatId,
-            sender:companyId,
-            text:content
-        });
-        const savedMessage = await newMessage.save();
-        return res.status(200).json({success:false,message:'Message sent succesfully',data:savedMessage})
-    } catch (error) {
-        next(error);
-    }
-}
+
 const getChatMessages = async (req,res,next) => {
     const {chatId} = req.params;
     const {user_id} = req.user;
@@ -180,9 +181,11 @@ const getChatMessages = async (req,res,next) => {
         const {user,company} = chat;
         let enduserinfo;
         if(user_id.toString() === user.toString()){
+            await Chats.findByIdAndUpdate(chatId, { $set: { ['unreadMessages.user']: 0 } })
             enduserinfo = await UserInfo.findOne({user:user_id}); 
         }
         if(user_id.toString() === company.toString()){
+            await Chats.findByIdAndUpdate(chatId, { $set: { ['unreadMessages.company']: 0 } })
             enduserinfo = await CompanyInfo.findOne({company:user_id});
         }
         const messages = await Messages.find({chat:chatId});
@@ -201,6 +204,28 @@ const getChatMessages = async (req,res,next) => {
         // }
         return res.status(200).json({success:true,message:'Messages'+successConstants.fetchingSuccess.fetchedSuccesfully,data:{messages,myprofilelogo:enduserinfo?.logo || enduserinfo?.profilepic,receiverIsOnline}});
         
+    } catch (error) {
+        next(error);
+    }
+}
+
+const companySendMessage = async (req,res,next) => {
+    const {chatId} = req.params;
+    const {companyId,content} = req.body;
+    try {
+        const company = await Companies.findById(companyId);
+        if(!company) throw {status:404,message:'Company'+errorConstants.userErrors.doesntExsist}
+        const chat = await Chats.findById(chatId);
+        if(!chat) throw {status:404,message:'Chat'+errorConstants.userErrors.doesntExsist};
+        if(chat.company.toString() !== companyId.toString()) throw {status:401,message:'You can not send message in this chat'}
+        await validateRequiredFields(req,res,'content');
+        const newMessage = new Messages({
+            chat:chatId,
+            sender:companyId,
+            text:content
+        });
+        const savedMessage = await newMessage.save();
+        return res.status(200).json({success:false,message:'Message sent succesfully',data:savedMessage})
     } catch (error) {
         next(error);
     }

@@ -16,7 +16,10 @@ const apply = new Schema({
         type:String,
         required:true,
     },
-    status:[{type:Schema.Types.ObjectId,ref:'applystatuses',default:mongoose.Types.ObjectId('65a6e9f5788f1a9ccd9f0e21')}],
+    status:[{
+        type:Schema.Types.ObjectId,
+        ref:'applystatuses',
+    }],
     percentageOfCv:{
         type:Number,
     },

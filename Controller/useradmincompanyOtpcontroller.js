@@ -46,7 +46,7 @@ const getUsersOtp = async (req,res,next) => {
       console.log(3)
       const emailcontent = await generateHtmlSendOtp(Data?.name, "password changing", otp);
       console.log(4)
-      await sendMail('otp',email, "Verification", emailcontent)
+      await sendMail('otp',Data?.email, "Verification", emailcontent)
       console.log(5)
       userotp.otp = otp;
       console.log(6)
