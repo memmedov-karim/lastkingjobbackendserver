@@ -87,7 +87,7 @@ async function generateHtmlForStatusUpdateFeedback(username,positionName,company
               <br>
               <strong>${positionName} müraciətinizdə yenilik var.</strong 
               <br>
-              Zəhmət olmasa ətraflı məlumat üçün şəxsi <a href="https://www.kingjob.pro/applicants-dashboard/applies" class="button">Kabinetiniziə</a> keçid edin
+              Zəhmət olmasa ətraflı məlumat üçün şəxsi <a href="https://www.kingjob.pro/applicants-dashboard/applies" class="button">Kabinetinizə</a> keçid edin
             </p>
           </div>
           <div class="button-container">

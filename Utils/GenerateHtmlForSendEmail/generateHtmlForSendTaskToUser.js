@@ -1,11 +1,11 @@
-function generateHtmlForSendTaskToUser(username,positionName,companyName,companyLogo,deadline) {
+async function generateHtmlForSendTaskToUser(username,positionName,companyName,companyLogo) {
     return (`
     <!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Application Feedback</title>
+      <title>Müraciətdən bildiriş</title>
       <style>
           /* Genel stiller */
           body {
@@ -83,32 +83,23 @@ function generateHtmlForSendTaskToUser(username,positionName,companyName,company
       <div class="container">
           <div class="feedback">
               <img src="${companyLogo}" alt="Şirket Logosu">
-              <p>New task assignment from <strong>${companyName}</strong></p>
+              <p><strong>${companyName}</strong>-dan tapşırıq var</p>
+              <br>
               <p>
-            Dear <strong>${username}</strong>
-            <br><br>
-            We are excited to inform you that your application for the position of ${positionName} at ${companyName} has been accepted! We appreciate your interest and are looking forward to having you as a part of our team.
-            <br><br>
-            As a part of your onboarding process, we have assigned a task to you. This task is designed to  help you get acquainted with your role and our company's expectations. Please find the details of the task below:
-            <br>
-            Deadline: <strong>${deadline}</strong>
-            <br>
-            We believe that this task will provide you with valuable insights into your new role and help you in your transition. We encourage you to complete this task diligently and feel free to reach out to us if you have any questions or need assistance.
-            Your success is important to us, and we are here to support you every step of the way.
-            Once again, congratulations on being accepted into the ${companyName} team! We are eager to see you thrive in your new position.
-            Best regards,
-            <br>
-            ${companyName}
+              Əziz <strong>${username}</strong>,
+              <br>
+              Ümid edirik işləriniz qaydasındadır
+              <br>
+              <strong>${positionName} müraciətiniz ilə baglı tapşırıqınız var.</strong 
+              <br>
+              Zəhmət olmasa ətraflı məlumat üçün şəxsi <a href="https://www.kingjob.pro/applicants-dashboard/applies" class="button">Kabinetinizə</a> keçid edin
             </p>
           </div>
           <div class="button-container">
-              <a href="https://kigjob.com/user_profile" class="button">Go To Your Profile</a>
-          </div>
-          <div class="button-container">
-          <a href="https://t.me/the_kingjob" class="button">Subscribe our telegram channel</a>
+          <a href="https://t.me/the_kingjob" class="button">Telegram kanalımıza abunə olun</a>
           </div>
           <div class="footer">
-              &copy; 2023 King Job. All rights reserved.
+              &copy; 2023 King Job. ütün hüquqlar qorunur.
           </div>
       </div>
   </body>

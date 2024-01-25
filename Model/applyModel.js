@@ -52,6 +52,10 @@ const apply = new Schema({
             type:Date,
             default:null
         },
+        examdurationTime:{
+            type:Number,
+            default:null
+        },
         numberOfTry:{
             type:Number,
             default:1
