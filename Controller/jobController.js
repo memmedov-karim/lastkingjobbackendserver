@@ -669,7 +669,7 @@ const addJob = async (req, res,next) => {
     await Companies.findByIdAndUpdate(company, {
       $inc: { numberOfJobSharing:premium ? -3 : -2 },
     });
-    const hrefs = "https://kingjob.pro/vacancies/" + savedJob._id.toString();
+    const hrefs = "https://kingjob.pro/vacancies-list/" + savedJob._id.toString();
     const applyLinks = `<a href="${hrefs}">Buradan müraciət et</a>`;
     // const applySameCategpry = await Applys.aggregate([
     //   {
@@ -729,10 +729,10 @@ const addJob = async (req, res,next) => {
     const companyName = `<strong>&#127970Şirkət:</strong>${companyOne.name}`;
     const jobName = `<b>&#129333Vəzifə:</b>${name}`;
     const endOfDate = `<b>&#128336Son tarix:</b>${endTime.split("T")[0]}`;
-    const href = "https://kingjob.pro/vacancies/" + savedJob._id.toString();
+    const href = "https://kingjob.pro/vacancies-list/" + savedJob._id.toString();
     const applyLink = `<a href="${href}">Buradan müraciət et &#128747</a>`;
     const resMessage = `${headOfMessage}\n\n${infoText}\n\n${companyName}\n${jobName}\n${endOfDate}\n${applyLink}`;
-    // await messageSenderToTelegram(tg_group_id, resMessage);
+    await messageSenderToTelegram(tg_group_id, resMessage);
     await CompanyInfo.findOneAndUpdate(
       { company: company },
       { $inc: { vacancynum: 1 } }
