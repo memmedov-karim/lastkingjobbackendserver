@@ -92,7 +92,7 @@ async function generateHtmlForSendTaskToUser(username,positionName,companyName,c
               <br>
               <strong>${positionName} müraciətiniz ilə baglı tapşırıqınız var.</strong 
               <br>
-              Zəhmət olmasa ətraflı məlumat üçün şəxsi <a href="https://www.kingjob.pro/applicants-dashboard/applies" class="button">Kabinetinizə</a> keçid edin
+              Zəhmət olmasa ətraflı məlumat üçün şəxsi <a href="https://www.kingjob.pro/applicants-dashboard/my-tasks" class="button">Kabinetinizə</a> keçid edin
             </p>
           </div>
           <div class="button-container">

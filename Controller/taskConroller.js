@@ -91,10 +91,10 @@ const  getFolderQuestionsForApplicant = async (req,res,next) => {
     try {
         // const folder = await Folders.findById(folderId);
         // if(!folder) return res.status(200).json({succes:false,message:'There is not folder with the given Id!'});
-        const apply = await Applys.findById(applyId);
+        const apply = await Applys.findById(applyId)
         if(!apply) throw {status:404,message:'Apply does not exsist'};
         const {folder,endTime,numberOfTry} = apply.taskInfo;
-        const differTime = new Date(joiningTime).getTime()-endTime.getTime();
+        const differTime = new Date(joiningTime || new Date()).getTime()-endTime.getTime();
         console.log(differTime);
         if(!folder) throw {status:404,message:'Task does not exsist for this user'};
         if(differTime >0) throw {status:400,message:'You deadline expired'};
@@ -124,7 +124,7 @@ const  getFolderQuestionsForApplicant = async (req,res,next) => {
         apply.taskInfo.numberOfTry = numberOfTry-1;
         await apply.save();
     //    const tasks = await Tasks.find({folder:mongoose.Types.ObjectId(folder)});
-        return res.status(200).json({success:false,message:'Questions'+successConstants.fetchingSuccess.fetchedSuccesfully,data:tasks[0]});
+        return res.status(200).json({success:false,message:'Questions'+successConstants.fetchingSuccess.fetchedSuccesfully,data:tasks[0],additionalInfo:apply.taskInfo});
     } catch (error) {
         next(error);
     }
@@ -177,6 +177,7 @@ const checkApplicantTask = async (req,res,next) => {
 const companySendTasksFolderToApplicant = async (req,res,next) =>{
     const {user_id:companyId} = req.user;
     const {applyIds,folderId,endTime,numberOfTry,examdurationTime} = req.body;
+    console.log(req.body)
     await validateRequiredFields(req,res,'endTime');
     try {
         const [company,folder] = await  Promise.all([   
