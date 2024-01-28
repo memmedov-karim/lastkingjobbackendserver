@@ -63,6 +63,14 @@ const apply = new Schema({
         totalPoint:{
             type:Number,
             default:0
+        },
+        startDate:{
+            type:Date,
+            default:null
+        },
+        illegalDetection:{
+            type:Array,
+            default:[]
         }
     }
 },{timestamps:true})

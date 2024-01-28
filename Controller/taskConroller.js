@@ -93,10 +93,12 @@ const  getFolderQuestionsForApplicant = async (req,res,next) => {
         // if(!folder) return res.status(200).json({succes:false,message:'There is not folder with the given Id!'});
         const apply = await Applys.findById(applyId)
         if(!apply) throw {status:404,message:'Apply does not exsist'};
-        const {folder,endTime,numberOfTry} = apply.taskInfo;
+        const {folder,endTime,numberOfTry,startDate} = apply.taskInfo;
         const differTime = new Date(joiningTime || new Date()).getTime()-endTime.getTime();
+        const differTime1 = new Date(joiningTime || new Date()).getTime()-startDate.getTime();
         console.log(differTime);
         if(!folder) throw {status:404,message:'Task does not exsist for this user'};
+        if(differTime1<0) throw {status:400,message:'Exam does not started yet'};
         if(differTime >0) throw {status:400,message:'You deadline expired'};
         if(numberOfTry === 0) throw {status:400,message:'You can not join this task,because your limit is 0'};
         const tasks = await Folders.aggregate([
@@ -176,7 +178,7 @@ const checkApplicantTask = async (req,res,next) => {
 //Sirket beyendiyi applicanta task gonderir
 const companySendTasksFolderToApplicant = async (req,res,next) =>{
     const {user_id:companyId} = req.user;
-    const {applyIds,folderId,endTime,numberOfTry,examdurationTime} = req.body;
+    const {applyIds,folderId,endTime,numberOfTry,examdurationTime,startDate} = req.body;
     console.log(req.body)
     await validateRequiredFields(req,res,'endTime');
     try {
@@ -205,7 +207,9 @@ const companySendTasksFolderToApplicant = async (req,res,next) =>{
                         'taskInfo.folder': folderId,
                         'taskInfo.endTime': new Date(endTime),
                         'taskInfo.numberOfTry': numberOfTry,
-                        'taskInfo.examdurationTime':examdurationTime
+                        'taskInfo.examdurationTime':examdurationTime,
+                        'taskInfo.startDate':startDate,
+                        'taskInfo.illegalDetection':[]
                     }
                 }
             );
@@ -234,7 +238,7 @@ const companySendTasksFolderToApplicant = async (req,res,next) =>{
                 }
                 const usId = apply?.user?._id;
                 const notificationData = {company:companyId,type:"exam"}
-                await UserInfo.findOneAndUpdate({usId},{$push:{notifications:notificationData}});
+                await UserInfo.findOneAndUpdate({user:usId},{$push:{notifications:notificationData}});
                 const io = getSocketInstance();
                 // console.log(io.sockets.adapter.rooms)
                 const onlineUsers = getConnectedUsers();
@@ -319,6 +323,29 @@ const fetchUserTasks = async (req,res,next) => {
         next(error);
     }
 }
+
+const detectIllegalActionOnExam = async (req,res,next) => {
+    const {applyerId} = req.body;
+    try {
+        const apply = await Applys.findById(applyerId);
+        if(!apply) throw {status:404,message:'Apply not found'};
+        const {taskInfo} = apply;
+        if(!taskInfo.folder) throw {status:404,message:'Exam not found'};
+        apply.taskInfo.illegalDetection.push(req.body)
+        await apply.save();
+        return res.status(200).json({success:true,message:''})
+    } catch (error) {
+        next(error)
+    }
+}
+
+const uploadexamscreenrocerder = async (req,res,next) => {
+    try {
+        console.log(req.file)
+    } catch (error){
+        next(error);
+    }
+}
 module.exports = {
     getFolders,
     creatFolder,
@@ -326,5 +353,7 @@ module.exports = {
     getFolderQuestionsForApplicant,
     checkApplicantTask,
     companySendTasksFolderToApplicant,
-    fetchUserTasks
+    fetchUserTasks,
+    detectIllegalActionOnExam,
+    uploadexamscreenrocerder
 }
