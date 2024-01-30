@@ -122,7 +122,7 @@ const registerUser = async (req, res, next) => {
     const savedUserInfo = await newUserInfo.save();
     newUser.userinfo = savedUserInfo._id;
     await newUser.save();
-    await sendMail('notification',email,'Thanks for register',thanksForRegister(name));
+    // await sendMail('notification',email,'Thanks for register',thanksForRegister(name));
     return res.status(200).json({success:true,savedUser,message:successConstants.registrationSuccess.successRegistered});
   } catch (error) {
     next(error);

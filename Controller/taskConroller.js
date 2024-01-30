@@ -123,8 +123,7 @@ const  getFolderQuestionsForApplicant = async (req,res,next) => {
             }
               },
         ])
-        apply.taskInfo.numberOfTry = numberOfTry-1;
-        await apply.save();
+        
     //    const tasks = await Tasks.find({folder:mongoose.Types.ObjectId(folder)});
         return res.status(200).json({success:false,message:'Questions'+successConstants.fetchingSuccess.fetchedSuccesfully,data:tasks[0],additionalInfo:apply.taskInfo});
     } catch (error) {
@@ -169,6 +168,7 @@ const checkApplicantTask = async (req,res,next) => {
         }));
         console.log(correctAnswers);
         apply.taskInfo.totalPoint = result;
+        apply.taskInfo.numberOfTry -=1;
         await apply.save();
         return res.status(200).json({success:true,result,d:{correct,empty,wrong:tasks?.length-correct-empty},correctedAnswers,message:'Calculated'});
     } catch (error) {
@@ -326,6 +326,7 @@ const fetchUserTasks = async (req,res,next) => {
 
 const detectIllegalActionOnExam = async (req,res,next) => {
     const {applyerId} = req.body;
+    console.log(req.body)
     try {
         const apply = await Applys.findById(applyerId);
         if(!apply) throw {status:404,message:'Apply not found'};

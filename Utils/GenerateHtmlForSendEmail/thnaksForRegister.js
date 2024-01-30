@@ -6,7 +6,7 @@ function thanksForRegister(username){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You for Registering</title>
+    <title>Qeydiyyat üçün təşəkkür</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -57,18 +57,18 @@ function thanksForRegister(username){
 <body>
     <div class="container">
         <div class="header">
-            <h1>Thank You for Registering</h1>
+            <h1>Qeydiyyat təşəkkürü</h1>
         </div>
         <div class="content">
-            <p>Hello ${username},</p>
-            <p>Thank you for registering with our website. We are excited to have you as a part of our community.</p>
-            <p>This email is to confirm your successful registration. Below is our logo for your reference:</p>
+            <p>Salam ${username},</p>
+            <p>Bizim saytdan qeydiyyatdan keçdiyinizə görə sizə təşəkkür edirik,sizinlə birgə olmaq bizi çox xoş edir.</p>
+            <p>Bu email qeydiyyatdan keçdiyinizin təsdiqidir.</p>
         </div>
         <div class="logo">
-        <img src="https://drive.google.com/uc?export=view&id=1tp9BPIjXquWfzUeZe9JyPeH4thdQs1-P" alt="Your Company Logo">
+        <img src="https://stratus.campaign-image.com/images/838625144/inkcanva_1217023000000048176.png" alt="Your Company Logo">
         </div>
         <div class="button-container">
-        <a href="https://t.me/the_kingjob" class="button">Subscribe our telegram channel</a>
+        <a href="https://t.me/the_kingjob" class="button">Telegram kanalımıza abunə ola bilərsiz</a>
         </div>
     </div>
 </body>
