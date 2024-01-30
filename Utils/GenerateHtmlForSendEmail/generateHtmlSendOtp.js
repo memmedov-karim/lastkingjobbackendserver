@@ -5,7 +5,7 @@ async function generateHtmlSendOtp(username,type,otp){
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>OTP Verification</title>
+            <title>OTP təsdiq</title>
             <style>
 
             .image {
@@ -18,22 +18,22 @@ async function generateHtmlSendOtp(username,type,otp){
         </head>
         <body style="font-family: Arial, sans-serif;">
         
-            <h1>OTP Verification Code</h1>
+            <h1>OTP təsdiq kodu</h1>
         
-            <p>Dear ${username}</p>
+            <p>Əziz ${username}</p>
         
-            <p>Your OTP code for ${type} is:</p>
+            <p>${type} üçün sizin OTP kodunuz</p>
         
             <h2 style="background-color: #007bff; color:white; padding: 10px; border-radius: 5px; font-size: 24px; text-align: center;">
                 ${otp}
             </h2>
         
-            <p>Please use this code to verify your identity. It will expire after a two minute period, so make sure to use it promptly.</p>
+            <p>Zəhmət olmasa bu kodu təsdiq üçün istifadə edin,kodun aktivlik müddəti 2 dəqiqədən sonra bitəcək.</p>
         
-            <p>If you didn't request this OTP code, please ignore this email.</p>
+            <p>Əgər OTP kod üçün istək göndərməmisizsə bu emaili ciddiyə almayın</p>
         
-            <p>Best regards,<br>KINGJOB TEAM</p>
-            <img class="image" src="https://drive.google.com/uc?export=view&id=1tp9BPIjXquWfzUeZe9JyPeH4thdQs1-P" alt="News Image">
+            <p>Sizə uğurlar arzu edirik,<br>KINGJOB KOMANDASI</p>
+            <img class="image" src="https://stratus.campaign-image.com/images/838625144/inkcanva_1217023000000048176.png" alt="News Image">
         
         </body>
         </html>

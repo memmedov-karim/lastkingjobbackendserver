@@ -6,7 +6,7 @@ function generateHtmlForLoginNotification(username,time,link){
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Notification</title>
+    <title>Giriş bildirişi</title>
     <style>
         /* General styles */
         body {
@@ -66,12 +66,14 @@ function generateHtmlForLoginNotification(username,time,link){
             <h1>Login Notification</h1>
         </div>
         <div class="content">
-            <p>Hello dear ${username},</p>
-            <p>You logged in to your account on ${time}.</p>
-            <p>If this login was not you, please click the button below to block your account:</p>
+            <p>Salam əziz ${username},</p>
+            <p>${time} radələrində hesabınıza giriş olundu.</p>
+            <p>Əgər hesabınıza daxil olan şəxs siz deyilsizsə,aşağıdakı düyməyə tıklamaqla hesabınızı bloklaya,hesabınızda olan birinin canlı rejimdə hesabınızdan ata bilərsiz.<br>
+            Yenidən hesabınıza girişi təmin etmək üçün şifrənizi - şifrəmi unutmuşam hissəsindən yeniləyə bilərsiz.
+            </p>
         </div>
         <div class="button-container">
-            <a href=${link} class="button">Block My Account</a>
+            <a href=${link} class="button">Hesabımı blokla</a>
         </div>
     </div>
 </body>

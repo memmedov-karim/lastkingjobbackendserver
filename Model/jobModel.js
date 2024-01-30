@@ -9,7 +9,7 @@ const user = new Schema({
 const job = new Schema({
     company:{
         type:Schema.Types.ObjectId,
-        require:true,
+        required:true,
         ref:"company"
     },
     category:{
@@ -19,11 +19,15 @@ const job = new Schema({
     },
     name:{
         type:String,
-        require:true
+        required:true
     },
     city:{
         type:String,
-        require:true
+        enum:[
+            'Baki','Abşeron','Ağcabədi','Ağdam','Ağdaş','Ağstafa','Ağsu','Astara','Balakən','Bərdə','Beyləqan','Biləsuvar','Cəbrayıl','Cəlilabad','Daşkəsən','Füzuli','Gədəbəy','Goranboy','Göyçay','Göygöl','Göytəpə','Hacıqabul','İmişli','İsmayıllı','Kəlbəcər','Kürdəmir','Laçın','Lənkəran','Lerik','Masallı','Neftçala','Oğuz','Ordubad','Qəbələ','Qax','Qazax','Qobustan',
+            'Quba','Qubadlı','Qusar','Saatlı','Sabirabad','Şabran','Şəki','Şəmkir','Samux','Şamaxı','Şirvan','Siyəzən','Sumqayıt','Şuşa','Tərtər','Tovuz','Ucar','Xaçmaz','Yardımlı','Yevlax',
+            'Zaqatala','Zəngilan','Zərdab'
+          ]
     },
     type:{
         type:Schema.Types.ObjectId,
@@ -32,19 +36,19 @@ const job = new Schema({
     },
     experience:{
         type:String,
-        require:true
+        enum:['Təcrübəsiz','Minimum 1 il','Minimum 2 il','Minimum 3 il','Minimum 4 il','Minimum 5 il','Minimum 6 il','Minimum 7 il','7 il +']
     },
     education:{
         type:String,
-        require:true
+        enum:['Təhsilsiz','Orta','Ali']
     },
     descriptionOfVacancy:{
         type:String,
-        require:true
+        required:true
     },
     skills:{
         type:Array,
-        require:true
+        default:[]
     },
     salary:{
         type:Number,

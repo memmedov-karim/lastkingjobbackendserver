@@ -15,11 +15,28 @@ const path = require('path');
 const http = require('http');
 const socketIo = require('socket.io');
 const app = express();
+const {sendMail} = require('./Utils/EmailSend/SendEmail.js');
 const {getPercentage} = require('./Utils/ProgressOfCv/ProgressCv.js')
-// const generateHtmlForToSendApplyMessage = require('./Utils/GenerateHtmlForSendEmail/generateHtmlForSendApplyMessage.js');
+const emls = require('./useremaildata.js');
+const {generatemailformarketing} = require('./Utils/GenerateHtmlForSendEmail/mailmarketing.js')
+const cont = generatemailformarketing();
+const sndmulem = (emails) => {
+  let index = 0;
+const intervalId = setInterval(() => {
+    if (index < emails.length) {
+        const email = emails[index].Email;
+        sendMail("notification",email,"King Job",cont);
+        index++;
+    } else {
+        clearInterval(intervalId); // Stop the interval when all emails are sent
+    }
+}, 20000);
+}
+// sndmulem(emls);
+  // const generateHtmlForToSendApplyMessage = require('./Utils/GenerateHtmlForSendEmail/generateHtmlForSendApplyMessage.js');
 // const cn = generateHtmlForToSendApplyMessage("karim","fron","kapital","log")
 // const {calculateSimilarity} = require('./Utils/stringSearching/findMatchingStrings.js')
-// const {sendMail} = require('./Utils/EmailSend/SendEmail.js');
+
 // sendMail('notification','sixkerimmemmedov2001@gmail.com',"OTP TESTING","mikkoo");
 // sendMail('notification','sixkerimmemmedov2001@gmail.com',"notifytesting TESTING","OTP tES is working");
 // for(let i=0;i<10;i++){
