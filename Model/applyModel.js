@@ -64,7 +64,23 @@ const apply = new Schema({
             type:Number,
             default:0
         },
+        correct:{
+            type:Number,
+            default:0
+        },
+        wrong:{
+            type:Number,
+            default:0
+        },
+        empty:{
+            type:Number,
+            default:0
+        },
         startDate:{
+            type:Date,
+            default:null
+        },
+        sendedTime:{
             type:Date,
             default:null
         },

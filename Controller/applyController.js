@@ -289,11 +289,32 @@ const getApplysForEachCompanyOnlyTestLevel = async (req, res, next) => {
                 }
             },
             {
+                $lookup: {
+                    from: 'folders',
+                    localField: 'taskInfo.folder',
+                    foreignField: '_id',
+                    as: 'taskInfoInfo'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$taskInfoInfo',
+                    preserveNullAndEmptyArrays: true  // Preserve if the array is empty or null
+                }
+            },
+            {
                 $project: {
                     job: 1,
                     file: 1,
                     percentageOfCv: 1,
-                    createdAt:1,
+                    createdAt: 1,
+                    taskInfo: {
+                        $mergeObjects: [
+                            '$taskInfo',
+                            { name: { $ifNull: ['$taskInfoInfo.name', null] } },
+                            { numOfQuestion: { $size: { $ifNull: ['$taskInfoInfo.questions', []] } } }
+                        ]
+                    },
                     profilepic: '$userInfoInfo.profilepic',
                     status: '$statusInfo',
                     jobName: '$jobInfo.name',
@@ -302,7 +323,8 @@ const getApplysForEachCompanyOnlyTestLevel = async (req, res, next) => {
                     jobTitle: '$userInfoInfo.jobTitle',
                     userCity: '$userInfoInfo.city'
                 }
-            },
+            }
+            
         ]);
 
         return res.status(200).json({ success: true, message: 'fetched', data: companyapplyes });
