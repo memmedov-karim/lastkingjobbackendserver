@@ -3,7 +3,7 @@
 
 //EXTERNAL LIBRARIES
 const  mongoose  = require('mongoose');
-
+const axios = require('axios')
 //MODELS
 const {Companies} = require('../Model/companyModel.js');
 const {Folders} = require('../Model/folderForTaskModel.js');
@@ -133,7 +133,7 @@ const  getFolderQuestionsForApplicant = async (req,res,next) => {
 }
 
 const checkApplicantTask = async (req,res,next) => {
-    const {folderId,applyId} = req.params;
+    const {folderId,applyId,sendedTime} = req.params;
     const {crtans} = req.body;
     console.log(req.body)
     try {
@@ -168,7 +168,14 @@ const checkApplicantTask = async (req,res,next) => {
         }));
         console.log(correctAnswers);
         apply.taskInfo.totalPoint = result;
+        apply.taskInfo.correct = correct;
+        apply.taskInfo.wrong =tasks?.length-correct-empty ;
+        apply.taskInfo.empty = empty;
+        const sendedTimeInBaku = new Date(sendedTime);
+        sendedTimeInBaku.setHours(sendedTimeInBaku.getHours() + 4);
+        apply.taskInfo.sendedTime = sendedTimeInBaku;
         apply.taskInfo.numberOfTry -=1;
+        console.log(sendedTime)
         await apply.save();
         return res.status(200).json({success:true,result,d:{correct,empty,wrong:tasks?.length-correct-empty},correctedAnswers,message:'Calculated'});
     } catch (error) {
@@ -209,7 +216,8 @@ const companySendTasksFolderToApplicant = async (req,res,next) =>{
                         'taskInfo.numberOfTry': numberOfTry,
                         'taskInfo.examdurationTime':examdurationTime,
                         'taskInfo.startDate':startDate,
-                        'taskInfo.illegalDetection':[]
+                        'taskInfo.illegalDetection':[],
+                        'taskInfo.sendedTime':null
                     }
                 }
             );
@@ -347,6 +355,76 @@ const uploadexamscreenrocerder = async (req,res,next) => {
         next(error);
     }
 }
+
+const getWaitingTasksEachCompany = async (req, res, next) => {
+    const { user_id: company_id } = req.user;
+
+    try {
+        const companyapplyes = await Applys.aggregate([
+            {$match:{'taskInfo.folder':{$ne:null}}},
+            {
+                $lookup: {
+                    from: 'jobs',
+                    localField: 'job',
+                    foreignField: '_id',
+                    as: 'jobInfo'
+                }
+            },
+            { $unwind: '$jobInfo' },
+            { $match: { 'jobInfo.company': mongoose.Types.ObjectId(company_id) } },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: 'user',
+                    foreignField: '_id',
+                    as: 'userInfo'
+                }
+            },
+            { $unwind: '$userInfo' },
+            {
+                $lookup: {
+                    from: 'userinfos',
+                    localField: 'userInfo.userinfo',
+                    foreignField: '_id',
+                    as: 'userInfoInfo'
+                }
+            },
+            { $unwind: '$userInfoInfo' },
+            {
+                $lookup: {
+                    from: 'folders',
+                    localField: 'taskInfo.folder',
+                    foreignField: '_id',
+                    as: 'taskInfoInfo'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$taskInfoInfo',
+                    preserveNullAndEmptyArrays: true  // Preserve if the array is empty or null
+                }
+            },
+            {
+                $project: {
+                    job: 1,
+                    taskInfo: {
+                        $mergeObjects: [
+                            '$taskInfo',
+                            { name: { $ifNull: ['$taskInfoInfo.name', null] } },
+                            { numOfQuestion: { $size: { $ifNull: ['$taskInfoInfo.questions', []] } } }
+                        ]
+                    },
+                    jobName: '$jobInfo.name',
+                    userName: '$userInfo.name',
+                }
+            }
+            
+        ]);
+        return res.status(200).json({ success: true, message: 'fetched', data: companyapplyes });
+    } catch (error) {
+        next(error);
+    }
+};
 module.exports = {
     getFolders,
     creatFolder,
@@ -356,5 +434,6 @@ module.exports = {
     companySendTasksFolderToApplicant,
     fetchUserTasks,
     detectIllegalActionOnExam,
-    uploadexamscreenrocerder
+    uploadexamscreenrocerder,
+    getWaitingTasksEachCompany
 }

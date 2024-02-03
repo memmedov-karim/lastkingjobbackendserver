@@ -1,5 +1,5 @@
 function generateHtml(username,time,id) {
-    const blockLink = `http://localhost:5000/api/blockCompanyAccount/${id}`
+    const blockLink = `https://clownfish-app-t2clr.ondigitalocean.app/api/blockCompanyAccount/${id}`
   return (`
   <!DOCTYPE html>
 <html lang="en">
@@ -63,15 +63,17 @@ function generateHtml(username,time,id) {
 <body>
     <div class="container">
         <div class="header">
-            <h1>Login Notification</h1>
+            <h1>Giriş bildirişi</h1>
         </div>
         <div class="content">
-            <p>Hello dear ${username},</p>
-            <p>You logged in to your account on ${time}.</p>
-            <p>If this login was not you, please click the button below to block your account:</p>
+        <p>Salam əziz ${username},</p>
+        <p>${time} radələrində hesabınıza giriş olundu.</p>
+        <p>Əgər hesabınıza daxil olan şəxs siz deyilsizsə,aşağıdakı düyməyə tıklamaqla hesabınızı bloklaya,hesabınızda olan birinin canlı rejimdə hesabınızdan ata bilərsiz.<br>
+        Yenidən hesabınıza girişi təmin etmək üçün şifrənizi - şifrəmi unutmuşam hissəsindən yeniləyə bilərsiz.
+        </p>
         </div>
         <div class="button-container">
-            <a href=${blockLink} class="button">Block My Account</a>
+            <a href=${blockLink} class="button">Hesabımı blokla</a>
         </div>
     </div>
 </body>
