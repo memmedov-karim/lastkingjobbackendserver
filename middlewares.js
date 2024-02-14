@@ -5,7 +5,7 @@ const cookieParser = require('cookie-parser');
 const path = require('path');
 const setupMiddlewares = (app) => {
   app.use(cors({
-    origin: ['https://kingjob.vercel.app', 'http://localhost:3000', 'https://kigjob.com', 'https://king-job.vercel.app', 'https://www.kingjob.pro','https://clownfish-app-t2clr.ondigitalocean.app'],
+    origin: ['https://kingjob.vercel.app', 'http://localhost:3000', 'https://kigjob.com', 'https://king-job.vercel.app', 'https://www.kingjob.pro','https://clownfish-app-t2clr.ondigitalocean.app','http://localhost:45678'],
     credentials: true
   }));
   app.use(bodyParser.urlencoded({ extended: true }));
