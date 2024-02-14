@@ -8,7 +8,7 @@ const usersinexam = {};
 function initializeSocket(server) {
   io = socketIo(server, {
     cors: {
-      origin: ['https://www.kingjob.pro','http://localhost:3000'],
+      origin: ['https://www.kingjob.pro','http://localhost:3000','https://clownfish-app-t2clr.ondigitalocean.app','http://localhost:45678'],
       methods: ['GET', 'POST'],
     },
   });
