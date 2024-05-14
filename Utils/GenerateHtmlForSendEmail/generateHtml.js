@@ -1,5 +1,5 @@
 function generateHtml(username,time,id) {
-    const blockLink = `https://clownfish-app-t2clr.ondigitalocean.app/api/blockCompanyAccount/${id}`
+    const blockLink = `https://seal-app-y7svs.ondigitalocean.app/api/blockCompanyAccount/${id}`
   return (`
   <!DOCTYPE html>
 <html lang="en">
