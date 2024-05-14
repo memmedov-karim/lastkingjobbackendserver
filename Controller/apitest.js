@@ -5,6 +5,7 @@ const { performance } = require('perf_hooks');
 async function sendRequests(apiEndpoint, numberOfRequests,loginData) {
   let successCount = 0;
   let errorCount = 0;
+  let errorCount1 = 0;
 
   const startTime = performance.now();
 
